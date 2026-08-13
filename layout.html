@@ -1,0 +1,1702 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" id="html-root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>補助小幫手</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --gold:#F5C518;--gold-bg:rgba(245,197,24,.12);--gold-border:rgba(245,197,24,.32);
+  --bg:#0f0f11;--s1:#17171b;--s2:#1f1f25;--s3:#27272f;
+  --border:#2a2a34;--text:#e8e8ec;--muted:#7a7a8a;
+  --green:#34d399;--blue:#60a5fa;--purple:#a78bfa;--pink:#f472b6;
+  --base-font:15px;--r-xl:28px;--r-lg:18px;--r-md:12px;
+}
+/* ── Font size modes ── */
+html.font-lg { --base-font: 20px; }
+html.font-xl { --base-font: 24px; }
+html{scroll-behavior:smooth;font-size:var(--base-font);}
+body{font-family:-apple-system,"SF Pro Text","Segoe UI","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 0 80px;}
+
+/* ── Screens ── */
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:680px;padding:36px 20px 28px;animation:fadeIn .3s ease both;}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── Accessibility bar (long only) ── */
+.a11y-bar{width:100%;max-width:680px;display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--s1);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.a11y-bar.hidden{display:none;}
+.a11y-label{font-size:.7rem;color:var(--muted);letter-spacing:1px;margin-right:4px;}
+.a11y-btn{background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 12px;font-size:.75rem;cursor:pointer;font-family:inherit;transition:all .15s;}
+.a11y-btn:hover,.a11y-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-bg);}
+
+/* ── Language bar (indigenous/newcomer) ── */
+.lang-bar{width:100%;max-width:680px;display:flex;align-items:center;gap:6px;padding:10px 16px;background:var(--s1);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.lang-bar.hidden{display:none;}
+.lang-btn{background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:4px 12px;font-size:.73rem;cursor:pointer;font-family:inherit;transition:all .15s;}
+.lang-btn:hover,.lang-btn.active{border-color:var(--gold);color:var(--gold);}
+
+/* ── Buttons ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;font-family:inherit;font-weight:700;transition:all .2s cubic-bezier(.34,1.56,.64,1);}
+.btn-primary{background:var(--gold);color:#111;border-radius:var(--r-xl);padding:1.1rem 2rem;font-size:1rem;width:100%;box-shadow:0 6px 24px rgba(245,197,24,.28);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(245,197,24,.38);}
+.btn-secondary{background:var(--s2);color:var(--text);border-radius:var(--r-lg);padding:.85rem 1.4rem;font-size:.9rem;border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--gold);color:var(--gold);}
+.btn-row{display:flex;gap:10px;width:100%;}
+.btn-sm{padding:.5rem 1rem;font-size:.8rem;border-radius:var(--r-md);}
+
+/* ── Welcome ── */
+.welcome-logo{width:80px;height:80px;background:var(--gold);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;margin-bottom:20px;box-shadow:0 0 40px rgba(245,197,24,.28);}
+.welcome-title{font-size:2.2rem;font-weight:900;color:#fff;text-align:center;line-height:1.15;margin-bottom:10px;}
+.welcome-title span{color:var(--gold);}
+.welcome-sub{font-size:.9rem;color:var(--muted);text-align:center;line-height:1.8;margin-bottom:28px;}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-bottom:8px;}
+.cat-card{background:var(--s1);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:1.2rem 1rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);font-family:inherit;text-align:left;}
+.cat-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 8px 24px rgba(245,197,24,.15);}
+.cat-card .cc-icon{font-size:1.8rem;flex-shrink:0;}
+.cat-card .cc-body strong{display:block;font-size:.88rem;font-weight:700;color:#fff;margin-bottom:2px;}
+.cat-card .cc-body span{font-size:.72rem;color:var(--muted);line-height:1.5;}
+.cat-card.full-width{grid-column:1/-1;}
+
+/* ── Progress ── */
+.progress-wrap{width:100%;margin-bottom:24px;}
+.progress-label{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-bottom:7px;}
+.progress-bar{height:4px;background:var(--s3);border-radius:4px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--gold);border-radius:4px;transition:width .4s ease;}
+
+/* ── Question UI ── */
+.q-title{font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:6px;text-align:center;}
+.q-sub{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.6;}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
+.opt-btn{background:var(--s1);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:1rem .9rem;font-size:.88rem;color:#ccc;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .18s;font-family:inherit;text-align:left;}
+.opt-btn .ob-icon{font-size:1.4rem;flex-shrink:0;}
+.opt-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-bg);}
+.opt-btn.selected{border-color:var(--gold);background:rgba(245,197,24,.1);color:var(--gold);font-weight:600;}
+.opt-btn.selected::after{content:'✓';margin-left:auto;font-size:.85rem;color:var(--gold);}
+.income-list{display:flex;flex-direction:column;gap:8px;width:100%;}
+.income-opt{background:var(--s1);border:1.5px solid var(--border);border-radius:var(--r-md);padding:.9rem 1.1rem;font-size:.88rem;color:#ccc;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .18s;font-family:inherit;}
+.income-opt:hover{border-color:var(--gold);color:var(--gold);}
+.income-opt.selected{border-color:var(--gold);background:var(--gold-bg);color:var(--gold);font-weight:600;}
+.income-opt .io-hint{font-size:.72rem;color:var(--muted);}
+.income-opt.selected .io-hint{color:var(--gold-border);}
+
+/* ── Voice button ── */
+.voice-wrap{width:100%;margin-bottom:16px;}
+.voice-btn{width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:1rem;display:flex;align-items:center;justify-content:center;gap:10px;font-size:.9rem;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .2s;}
+.voice-btn.listening{border-color:var(--gold);color:var(--gold);background:var(--gold-bg);animation:pulse-border 1.2s ease-in-out infinite;}
+@keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(245,197,24,.4);}50%{box-shadow:0 0 0 8px rgba(245,197,24,0);}}
+.voice-transcript{font-size:.82rem;color:var(--muted);text-align:center;margin-top:8px;min-height:1.2rem;}
+
+/* ── Disability filter ── */
+.disability-slider-wrap{width:100%;margin-bottom:8px;}
+.slider-label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:6px;}
+.slider-label span{color:var(--gold);font-weight:700;}
+input[type=range]{width:100%;accent-color:var(--gold);cursor:pointer;}
+
+/* ── Results ── */
+.result-hero{background:linear-gradient(135deg,#1a1500,#252000);border:1px solid var(--gold-border);border-radius:var(--r-xl);padding:1.5rem;width:100%;margin-bottom:18px;text-align:center;}
+.rh-label{font-size:.72rem;color:var(--muted);letter-spacing:2px;margin-bottom:4px;}
+.rh-count{font-size:3rem;font-weight:900;color:var(--gold);line-height:1;}
+.rh-unit{font-size:.85rem;color:var(--muted);margin-top:4px;}
+.result-list{width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.result-item{background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;display:flex;gap:12px;align-items:flex-start;}
+.ri-emoji{font-size:1.5rem;flex-shrink:0;}
+.ri-name{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:3px;}
+.ri-desc{font-size:.78rem;color:var(--muted);line-height:1.6;}
+.badge-high{display:inline-flex;align-items:center;gap:4px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:var(--green);border-radius:20px;padding:2px 9px;font-size:.7rem;font-weight:700;margin-top:5px;}
+.badge-mid{display:inline-flex;align-items:center;gap:4px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;border-radius:20px;padding:2px 9px;font-size:.7rem;font-weight:700;margin-top:5px;}
+.print-bar{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;margin-bottom:12px;}
+.print-bar-title{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:10px;}
+.print-row{display:flex;gap:8px;}
+.print-btn{flex:1;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:.85rem .5rem;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-family:inherit;transition:all .18s;}
+.print-btn .pb-icon{font-size:1.6rem;}
+.print-btn .pb-lbl{font-size:.72rem;color:var(--muted);font-weight:600;}
+.print-btn:hover{border-color:var(--gold);background:var(--gold-bg);}
+.print-btn:hover .pb-lbl{color:var(--gold);}
+
+/* ── Calculator (lowincome) ── */
+.calc-card{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px;}
+.calc-header{background:var(--gold);color:#111;padding:.85rem 1.1rem;font-size:.82rem;font-weight:700;letter-spacing:1px;}
+.calc-body{padding:1.1rem;}
+.calc-field{margin-bottom:14px;}
+.calc-field label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:6px;font-weight:600;}
+.calc-field input,.calc-field select{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-md);padding:.7rem .9rem;font-size:.88rem;color:var(--text);font-family:inherit;transition:border-color .15s;}
+.calc-field input:focus,.calc-field select:focus{outline:none;border-color:var(--gold);}
+.calc-field select option{background:var(--s2);}
+.calc-result{display:none;margin-top:14px;border-radius:var(--r-md);padding:1rem 1.1rem;font-size:.88rem;line-height:1.7;}
+.calc-result.show{display:block;}
+.calc-result.qualify{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:var(--green);}
+.calc-result.mid{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;}
+.calc-result.no{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:#f87171;}
+
+/* ── Offices ── */
+.office-card{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px;}
+.office-header{background:var(--s2);padding:.85rem 1.1rem;font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:1.5px;}
+.office-item{display:flex;justify-content:space-between;align-items:center;padding:.9rem 1.1rem;border-top:1px solid var(--border);}
+.oi-name{font-size:.88rem;font-weight:600;color:#eee;}
+.oi-addr{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.oi-phone{font-size:.82rem;font-weight:700;color:var(--gold);white-space:nowrap;margin-left:10px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:4px 10px;}
+
+/* ── Assistive device search ── */
+.search-wrap{width:100%;position:relative;margin-bottom:14px;}
+.search-wrap input{width:100%;background:var(--s1);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:.85rem 1rem .85rem 3rem;font-size:.9rem;color:var(--text);font-family:inherit;transition:border-color .15s;}
+.search-wrap input:focus{outline:none;border-color:var(--gold);}
+.search-wrap .s-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:1.1rem;pointer-events:none;}
+.device-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+.device-chip{background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:4px 13px;font-size:.78rem;color:#ccc;cursor:pointer;transition:all .15s;}
+.device-chip:hover,.device-chip.active{border-color:var(--gold);color:var(--gold);background:var(--gold-bg);}
+.device-results{width:100%;display:flex;flex-direction:column;gap:8px;}
+.device-item{background:var(--s1);border:1px solid var(--border);border-radius:var(--r-md);padding:.85rem 1rem;display:flex;justify-content:space-between;align-items:center;}
+.device-name{font-size:.88rem;font-weight:600;color:#fff;}
+.device-limit{font-size:.8rem;color:var(--gold);font-weight:700;}
+
+/* ── Checklist ── */
+.cl-wrap{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px;}
+.cl-header{background:var(--gold);color:#111;padding:.85rem 1.1rem;font-size:.85rem;font-weight:700;letter-spacing:.5px;}
+.cl-list{list-style:none;}
+.cl-item{display:flex;align-items:center;gap:12px;padding:.95rem 1.1rem;border-top:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.cl-item:hover{background:var(--s2);}
+.cl-checkbox{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;transition:all .18s;display:flex;align-items:center;justify-content:center;}
+.cl-item.checked .cl-checkbox{background:var(--gold);border-color:var(--gold);}
+.cl-item.checked .cl-checkbox::after{content:'✓';font-size:.8rem;color:#111;font-weight:800;}
+.cl-item.checked .cl-name{color:var(--muted);text-decoration:line-through;}
+.cl-name{font-size:.88rem;color:#e0e0e0;font-weight:500;}
+.cl-note{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.cl-prog{padding:.75rem 1.1rem;background:var(--s2);display:flex;align-items:center;gap:10px;font-size:.75rem;color:var(--muted);}
+.cl-prog-bar{flex:1;height:4px;background:var(--border);border-radius:4px;}
+.cl-prog-fill{height:100%;background:var(--gold);border-radius:4px;transition:width .3s;}
+
+/* ── Translate ── */
+.trans-card{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px;}
+.trans-header{background:var(--s2);padding:.85rem 1.1rem;font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:1.5px;}
+.trans-body{padding:1.1rem;}
+textarea.doc-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-md);padding:.85rem;font-size:.88rem;color:#ddd;font-family:inherit;resize:vertical;min-height:110px;line-height:1.7;transition:border-color .15s;}
+textarea.doc-input:focus{outline:none;border-color:var(--gold);}
+textarea.doc-input::placeholder{color:#444;}
+.thinking-bar{display:none;align-items:center;gap:10px;margin-top:12px;padding:.85rem 1rem;background:var(--s2);border-radius:var(--r-md);font-size:.82rem;color:var(--muted);}
+.thinking-bar.show{display:flex;}
+.dot-pulse{display:flex;gap:4px;}
+.dot-pulse span{width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 1.2s ease-in-out infinite;}
+.dot-pulse span:nth-child(2){animation-delay:.2s;}
+.dot-pulse span:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{0%,80%,100%{transform:scale(.8);opacity:.5;}40%{transform:scale(1);opacity:1;}}
+.ai-result{display:none;margin-top:14px;animation:fadeIn .3s ease both;}
+.ai-result.show{display:block;}
+.ai-block{background:var(--s2);border-left:3px solid var(--gold);border-radius:0 var(--r-sm,6px) var(--r-sm,6px) 0;padding:.9rem 1rem;margin-bottom:10px;}
+.ai-block .ab-num{font-size:.7rem;color:var(--gold);font-weight:700;letter-spacing:1px;margin-bottom:5px;}
+.ai-block .ab-text{font-size:.88rem;color:#ddd;line-height:1.75;}
+
+/* ── Social worker appointment ── */
+.appt-card{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.1rem;margin-bottom:14px;}
+.appt-title{font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:12px;}
+.appt-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.appt-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.appt-field label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:5px;}
+.appt-field input,.appt-field select{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-md);padding:.65rem .85rem;font-size:.85rem;color:var(--text);font-family:inherit;}
+.appt-field input:focus,.appt-field select:focus{outline:none;border-color:var(--gold);}
+.appt-field select option{background:var(--s2);}
+
+/* ── Translate screen ── */
+.trans-screen-card{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px;}
+.trans-screen-header{background:var(--gold);color:#111;padding:.85rem 1.1rem;font-size:.82rem;font-weight:700;letter-spacing:1px;}
+.trans-screen-body{padding:1.1rem;}
+.trans-result-block{display:none;margin-top:14px;background:var(--s2);border-left:3px solid var(--gold);border-radius:0 var(--r-md) var(--r-md) 0;padding:.9rem 1rem;font-size:.88rem;color:#ddd;line-height:1.85;}
+.trans-result-block.show{display:block;}
+
+/* ── Tab bar ── */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(15,15,17,.94);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);z-index:100;}
+.tbb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;background:none;border:none;cursor:pointer;font-family:inherit;color:var(--muted);font-size:.62rem;font-weight:600;letter-spacing:.5px;transition:color .15s;}
+.tbb .ti{font-size:1.25rem;transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+.tbb.active{color:var(--gold);}
+.tbb.active .ti{transform:scale(1.15) translateY(-2px);}
+
+/* ── Section label ── */
+.sec-lbl{font-size:.68rem;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.sec-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+
+/* ── Tag ── */
+.tag{display:inline-block;background:var(--gold-bg);border:1px solid var(--gold-border);color:var(--gold);border-radius:20px;padding:2px 10px;font-size:.7rem;font-weight:700;margin:2px;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(60px);opacity:0;background:#fff;color:#111;border-radius:var(--r-md);padding:.75rem 1.4rem;font-size:.85rem;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s ease;z-index:999;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.pb-bar{height:76px;}
+</style>
+</head>
+<body>
+
+<!-- ══ A11Y BAR ══ -->
+<div class="a11y-bar hidden" id="a11y-bar">
+  <span class="a11y-label">字體大小</span>
+  <button class="a11y-btn" onclick="setFont('normal')">標準</button>
+  <button class="a11y-btn" onclick="setFont('lg')">大 A</button>
+  <button class="a11y-btn" onclick="setFont('xl')">特大 A</button>
+  <span class="a11y-label" style="margin-left:12px;">語音</span>
+  <button class="a11y-btn" id="voice-toggle-bar" onclick="toggleVoiceGlobal()">🎙 語音輸入</button>
+</div>
+
+<!-- ══ LANG BAR ══ -->
+<div class="lang-bar hidden" id="lang-bar">
+  <span class="a11y-label">語言</span>
+  <button class="lang-btn active" data-lang="zh" onclick="setLang('zh',this)">繁體中文</button>
+  <button class="lang-btn" data-lang="vi" onclick="setLang('vi',this)">Tiếng Việt</button>
+  <button class="lang-btn" data-lang="id" onclick="setLang('id',this)">Bahasa Indonesia</button>
+  <button class="lang-btn" data-lang="th" onclick="setLang('th',this)">ภาษาไทย</button>
+  <button class="lang-btn" data-lang="tl" onclick="setLang('tl',this)">Filipino</button>
+  <button class="lang-btn" data-lang="en" onclick="setLang('en',this)">English</button>
+</div>
+
+<!-- ══════════ SCREEN: WELCOME ══════════ -->
+<div class="screen active" id="scr-welcome">
+  <div class="welcome-logo">💛</div>
+  <h1 class="welcome-title">補助<span>小幫手</span></h1>
+  <p class="welcome-sub">請選擇您的身分，系統將為您<br>客製化最適合的補助查詢介面</p>
+  <div class="cat-grid">
+    <button class="cat-card" onclick="enterCat('elderly')">
+      <span class="cc-icon">👴</span>
+      <div class="cc-body"><strong>長者</strong><span>65 歲以上<br>字體放大・語音輸入</span></div>
+    </button>
+    <button class="cat-card" onclick="enterCat('lowincome')">
+      <span class="cc-icon">🏠</span>
+      <div class="cc-body"><strong>中低收入</strong><span>資格試算<br>財產認定說明</span></div>
+    </button>
+    <button class="cat-card" onclick="enterCat('disability')">
+      <span class="cc-icon">♿</span>
+      <div class="cc-body"><strong>身心障礙</strong><span>輔具查詢<br>鍵盤無障礙</span></div>
+    </button>
+    <button class="cat-card" onclick="enterCat('indigenous')">
+      <span class="cc-icon">🌿</span>
+      <div class="cc-body"><strong>原住民族</strong><span>族語語音<br>部落社工地圖</span></div>
+    </button>
+    <button class="cat-card" onclick="enterCat('newcomer')">
+      <span class="cc-icon">🌏</span>
+      <div class="cc-body"><strong>新住民</strong><span>5 種語言<br>子女就學補助</span></div>
+    </button>
+    <button class="cat-card" onclick="enterCat('singleparent')">
+      <span class="cc-icon">👩‍👧</span>
+      <div class="cc-body"><strong>單親家庭</strong><span>一站式申請<br>社工預約</span></div>
+    </button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══════════ SCREEN: ELDERLY ══════════ -->
+<div class="screen" id="scr-elderly">
+  <div class="sec-lbl">👴 長者補助查詢</div>
+  <div class="q-title">請用語音或選擇回答</div>
+  <div class="q-sub">系統會依據您的年齡、收入與失能等級，自動找出適合的補助</div>
+
+  <!-- Voice input -->
+  <div class="voice-wrap">
+    <button class="voice-btn" id="voice-btn-elderly" onclick="startVoice('elderly')">
+      🎙 點此語音輸入（例如：「我 72 歲，獨居，輕度失能」）
+    </button>
+    <div class="voice-transcript" id="voice-transcript-elderly"></div>
+  </div>
+
+  <!-- Age -->
+  <div style="width:100%;margin-bottom:14px;">
+    <div class="disability-slider-wrap">
+      <div class="slider-label">年齡：<span id="age-val">65</span> 歲</div>
+      <input type="range" min="60" max="100" value="65" id="age-slider" oninput="document.getElementById('age-val').textContent=this.value">
+    </div>
+  </div>
+
+  <!-- Income -->
+  <div style="width:100%;margin-bottom:14px;">
+    <div class="sec-lbl">家庭每月收入</div>
+    <div class="income-list" id="elderly-income">
+      <button class="income-opt" data-val="low" onclick="selectSingle('elderly-income',this)"><span>低於 20,000 元</span><span class="io-hint">低收入戶</span></button>
+      <button class="income-opt" data-val="mid-low" onclick="selectSingle('elderly-income',this)"><span>20,001 ～ 40,000 元</span><span class="io-hint">中低收入戶</span></button>
+      <button class="income-opt" data-val="mid" onclick="selectSingle('elderly-income',this)"><span>40,001 元以上</span><span class="io-hint">特殊身分補助</span></button>
+    </div>
+  </div>
+
+  <!-- Disability level -->
+  <div style="width:100%;margin-bottom:20px;">
+    <div class="disability-slider-wrap">
+      <div class="slider-label">失能等級：第 <span id="dis-val">0</span> 級（0 = 無）</div>
+      <input type="range" min="0" max="8" value="0" id="dis-slider" oninput="document.getElementById('dis-val').textContent=this.value">
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo('scr-welcome')">← 返回</button>
+    <button class="btn btn-primary" onclick="calcElderly()">🔍 查詢符合補助</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══════════ SCREEN: ELDERLY RESULT ══════════ -->
+<div class="screen" id="scr-elderly-result">
+  <div class="sec-lbl">查詢結果</div>
+  <div id="elderly-tags" style="margin-bottom:14px;"></div>
+  <div class="result-hero">
+    <div class="rh-label">找到符合的補助</div>
+    <div class="rh-count" id="elderly-count">0</div>
+    <div class="rh-unit">項可能符合</div>
+  </div>
+  <div class="result-list" id="elderly-list"></div>
+  <!-- Print/LINE bar -->
+  <div class="print-bar">
+    <div class="print-bar-title">一鍵傳送或列印查詢結果</div>
+    <div class="print-row">
+      <button class="print-btn" onclick="exportLINE('elderly')"><span class="pb-icon">💬</span><span class="pb-lbl">傳至 LINE</span></button>
+      <button class="print-btn" onclick="exportPrint('elderly')"><span class="pb-icon">🖨</span><span class="pb-lbl">列印清單</span></button>
+      <button class="print-btn" onclick="exportCopy('elderly')"><span class="pb-icon">📋</span><span class="pb-lbl">複製文字</span></button>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo('scr-elderly')">← 重新查詢</button>
+    <button class="btn btn-primary" onclick="goChecklist('elderly')">📎 產生文件清單</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══════════ SCREEN: LOWINCOME ══════════ -->
+<div class="screen" id="scr-lowincome">
+  <div class="sec-lbl">🏠 低收入 / 中低收入資格試算</div>
+  <div class="q-title">互動式資格試算</div>
+  <div class="q-sub">填入家庭狀況，立即判斷是否符合低收入戶或中低收入戶資格</div>
+
+  <div class="calc-card">
+    <div class="calc-header">📊 資格試算器</div>
+    <div class="calc-body">
+      <div class="calc-field">
+        <label>居住縣市</label>
+        <select id="calc-city" onchange="updateMLL()">
+          <option value="tp">臺北市（最低生活費 17,661 元）</option>
+          <option value="ntpc">新北市（16,000 元）</option>
+          <option value="tc" selected>臺中市（14,230 元）</option>
+          <option value="tn">臺南市（14,230 元）</option>
+          <option value="kh">高雄市（14,230 元）</option>
+          <option value="other">其他縣市（約 14,230 元）</option>
+        </select>
+      </div>
+      <div class="calc-field">
+        <label>家庭人口數</label>
+        <input type="number" id="calc-people" min="1" max="10" value="3" placeholder="請輸入人數">
+      </div>
+      <div class="calc-field">
+        <label>家庭每月總收入（元）</label>
+        <input type="number" id="calc-income" min="0" value="18000" placeholder="請輸入月收入">
+      </div>
+      <div class="calc-field">
+        <label>家庭財產總額（元，含不動產估值）</label>
+        <input type="number" id="calc-asset" min="0" value="0" placeholder="不確定可填 0">
+      </div>
+      <div id="calc-result" class="calc-result"></div>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="runCalc()" style="margin-bottom:14px;">計算資格 →</button>
+
+  <!-- 財產認定說明 -->
+  <div class="calc-card">
+    <div class="calc-header">💡 財產認定說明（無術語版）</div>
+    <div class="calc-body" style="font-size:.85rem;color:#c8c8d8;line-height:1.9;">
+      ✦ <strong style="color:var(--gold)">收入</strong>認定包含：薪資、農漁業所得、利息、租金等<br>
+      ✦ <strong style="color:var(--gold)">財產</strong>認定包含：不動產（土地＋房屋公告現值）、存款、股票<br>
+      ✦ 自用住宅房屋若為唯一居所，<strong style="color:var(--gold)">不計入</strong>財產認定（各縣市規定不同）<br>
+      ✦ 計算方式：家庭平均每人月收入 = （總收入 ÷ 人口數）
+    </div>
+  </div>
+
+  <!-- 社會局聯絡 -->
+  <div class="office-card">
+    <div class="office-header">📞 縣市社會局聯絡 &amp; 預約管道</div>
+    <div class="office-item"><div><div class="oi-name">臺北市社會局</div><div class="oi-addr">信義區市府路1號</div></div><div class="oi-phone">02-2720-8889</div></div>
+    <div class="office-item"><div><div class="oi-name">新北市社會局</div><div class="oi-addr">板橋區中山路1號</div></div><div class="oi-phone">02-2960-3456</div></div>
+    <div class="office-item"><div><div class="oi-name">臺中市社會局</div><div class="oi-addr">西屯區臺灣大道3段99號</div></div><div class="oi-phone">04-2228-9111</div></div>
+    <div class="office-item"><div><div class="oi-name">福利諮詢專線</div><div class="oi-addr">全國統一，週一至週五 8:00–20:00</div></div><div class="oi-phone">1957</div></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo('scr-welcome')">← 返回</button>
+    <button class="btn btn-primary" onclick="goChecklist('lowincome')">📎 產生文件清單</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══════════ SCREEN: DISABILITY ══════════ -->
+<div class="screen" id="scr-disability">
+  <div class="sec-lbl">♿ 身心障礙輔具補助查詢</div>
+  <div class="q-title">搜尋輔具品項</div>
+  <div class="q-sub">支援關鍵字搜尋與分類瀏覽，全頁可純鍵盤操作</div>
+
+  <div class="search-wrap">
+    <span class="s-icon">🔍</span>
+    <input type="search" id="device-search" placeholder="輸入輔具名稱，例如：輪椅、助聽器…" aria-label="輔具搜尋" onkeyup="filterDevices()" tabindex="0">
+  </div>
+  <div class="device-chips" id="device-cats">
+    <span class="device-chip active" data-cat="all" onclick="filterCat(this,'all')">全部</span>
+    <span class="device-chip" data-cat="move" onclick="filterCat(this,'move')">行動輔具</span>
+    <span class="device-chip" data-cat="sense" onclick="filterCat(this,'sense')">感官輔具</span>
+    <span class="device-chip" data-cat="comm" onclick="filterCat(this,'comm')">溝通輔具</span>
+    <span class="device-chip" data-cat="daily" onclick="filterCat(this,'daily')">日常生活</span>
+  </div>
+  <div class="device-results" id="device-results"></div>
+
+  <!-- Draft save notice -->
+  <div style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:var(--r-md);padding:.85rem 1rem;margin-top:12px;font-size:.8rem;color:var(--muted);line-height:1.7;">
+    💾 <strong style="color:var(--text);">草稿自動儲存</strong>：您填寫的預審資料已自動儲存，下次開啟可繼續填寫，不需重複輸入。
+  </div>
+
+  <div class="btn-row" style="margin-top:16px;">
+    <button class="btn btn-secondary" onclick="goTo('scr-welcome')">← 返回</button>
+    <button class="btn btn-primary" onclick="goChecklist('disability')">📎 文件清單</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══════════ SCREEN: INDIGENOUS ══════════ -->
+<div class="screen" id="scr-indigenous">
+  <div class="sec-lbl">🌿 原住民族補助</div>
+  <div class="q-title" id="indig-title">族語語音說明</div>
+  <div class="q-sub" id="indig-sub">選擇補助項目，聆聽族語語音說明</div>
+
+  <!-- 全域語音控制列 -->
+  <div id="voice-ctrl-bar" style="display:none;width:100%;background:var(--s2);border:1px solid var(--gold-border);border-radius:var(--r-lg);padding:.75rem 1rem;margin-bottom:14px;display:none;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span style="font-size:.8rem;color:var(--gold);font-weight:700;flex:1;" id="voice-ctrl-label">▶ 播放中…</span>
+    <button class="btn btn-secondary btn-sm" id="voice-pause-btn" onclick="togglePauseVoice()">⏸ 暫停</button>
+    <button class="btn btn-secondary btn-sm" onclick="stopVoice()">⏹ 停止</button>
+  </div>
+
+  <div style="width:100%;margin-bottom:16px;">
+    <div class="sec-lbl">選擇語言 / 族語</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;">
+      <button class="device-chip active" data-tribe="amis" onclick="selectTribe(this,'amis')">🎵 阿美族語</button>
+      <button class="device-chip" data-tribe="paiwan" onclick="selectTribe(this,'paiwan')">🎵 排灣族語</button>
+      <button class="device-chip" data-tribe="atayal" onclick="selectTribe(this,'atayal')">🎵 泰雅族語</button>
+      <button class="device-chip" data-tribe="bunun" onclick="selectTribe(this,'bunun')">🎵 布農族語</button>
+      <button class="device-chip" data-tribe="hokkien" onclick="selectTribe(this,'hokkien')">🎵 台語（閩南語）</button>
+      <button class="device-chip" data-tribe="zh" onclick="selectTribe(this,'zh')">📖 中文</button>
+    </div>
+  </div>
+
+  <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;">
+      <div style="font-size:.88rem;font-weight:700;color:#fff;margin-bottom:4px;">🌾 老農津貼說明</div>
+      <div style="font-size:.8rem;color:var(--muted);margin-bottom:10px;" id="amis-desc-1">政府每個月給您 8,316 元，只要您 65 歲以上、有加入農保就可以申請。</div>
+      <button class="btn btn-secondary btn-sm" id="vbtn-agri" onclick="playVoiceCtrl('agri','老農津貼：政府每個月給您 8316 元，只要您 65 歲以上有加入農保就可以申請。',this)">▶ 播放語音</button>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;">
+      <div style="font-size:.88rem;font-weight:700;color:#fff;margin-bottom:4px;">🏔 原住民族加碼補助</div>
+      <div style="font-size:.8rem;color:var(--muted);margin-bottom:10px;" id="amis-desc-2">如果您是低收入戶，政府除了生活補助之外，每個月還會多給您 2,000 元。</div>
+      <button class="btn btn-secondary btn-sm" id="vbtn-indig" onclick="playVoiceCtrl('indig','原住民族加碼：如果您是低收入戶，每個月還會多給您 2000 元。',this)">▶ 播放語音</button>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;">
+      <div style="font-size:.88rem;font-weight:700;color:#fff;margin-bottom:4px;">🎓 子女獎助學金</div>
+      <div style="font-size:.8rem;color:var(--muted);margin-bottom:10px;" id="amis-desc-3">孩子讀高中每學期最高 6,000 元，讀大學每學期最高 12,000 元，讀研究所最高 18,000 元。</div>
+      <button class="btn btn-secondary btn-sm" id="vbtn-scholar" onclick="playVoiceCtrl('scholar','子女獎助學金：孩子讀高中每學期最高 6000 元，大學 12000 元，研究所 18000 元。',this)">▶ 播放語音</button>
+    </div>
+  </div>
+
+  <!-- 部落社工地圖 -->
+  <div class="office-card">
+    <div class="office-header">📍 部落社工聯繫地圖（依鄉鎮搜尋）</div>
+    <div style="padding:.7rem 1.1rem;">
+      <input type="search" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-md);padding:.65rem .85rem;font-size:.85rem;color:var(--text);font-family:inherit;" placeholder="輸入鄉鎮名稱，例如：花蓮縣秀林鄉" oninput="searchSocialWorker(this.value)">
+    </div>
+    <div id="sw-results">
+      <div class="office-item"><div><div class="oi-name">花蓮縣原住民族行政處</div><div class="oi-addr">花蓮縣花蓮市府前路17號</div></div><div class="oi-phone">03-833-8141</div></div>
+      <div class="office-item"><div><div class="oi-name">臺東縣原住民族行政處</div><div class="oi-addr">臺東縣臺東市中山路276號</div></div><div class="oi-phone">089-326-141</div></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="stopVoice();goTo('scr-welcome')">← 返回</button>
+    <button class="btn btn-primary" onclick="goChecklist('indigenous')">📎 文件清單</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══════════ SCREEN: NEWCOMER ══════════ -->
+<div class="screen" id="scr-newcomer">
+  <div class="sec-lbl" id="nc-lbl">🌏 新住民補助指南</div>
+  <div class="q-title" id="nc-title">補助資格查詢</div>
+  <div class="q-sub" id="nc-sub">請切換上方語言，填寫基本資料，系統幫您找出可申請的補助</div>
+
+  <!-- ── 補助資格試算器 ── -->
+  <div class="calc-card" style="margin-bottom:14px;">
+    <div class="calc-header" id="nc-calc-hdr">🔍 補助資格試算</div>
+    <div class="calc-body">
+      <div class="calc-field">
+        <label id="nc-f1-lbl">居留類型</label>
+        <select id="nc-permit">
+          <option value="resident">外僑居留證（依親 / 工作）</option>
+          <option value="settled">定居證（永久居留）</option>
+          <option value="naturalized">歸化取得國籍</option>
+        </select>
+      </div>
+      <div class="calc-field">
+        <label id="nc-f2-lbl">居住縣市</label>
+        <select id="nc-city">
+          <option value="tp">臺北市</option>
+          <option value="ntpc">新北市</option>
+          <option value="tc" selected>臺中市</option>
+          <option value="tn">臺南市</option>
+          <option value="kh">高雄市</option>
+          <option value="other">其他縣市</option>
+        </select>
+      </div>
+      <div class="appt-row">
+        <div class="calc-field">
+          <label id="nc-f3-lbl">家庭人口數</label>
+          <input type="number" id="nc-people" min="1" max="10" value="3">
+        </div>
+        <div class="calc-field">
+          <label id="nc-f4-lbl">家庭月收入（元）</label>
+          <input type="number" id="nc-income" min="0" value="25000">
+        </div>
+      </div>
+      <div class="calc-field">
+        <label id="nc-f5-lbl">子女在學人數（0 = 無）</label>
+        <input type="number" id="nc-children" min="0" max="8" value="1">
+      </div>
+      <div id="nc-calc-result" class="calc-result"></div>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="nc-calc-btn" onclick="calcNewcomer()" style="margin-bottom:14px;">🔍 查詢符合補助</button>
+
+  <!-- ── 補助說明卡片 ── -->
+  <div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.1rem;">
+      <div style="font-size:.95rem;font-weight:800;color:var(--gold);margin-bottom:8px;" id="nc-item1-title">📚 子女就學補助</div>
+      <div style="font-size:.85rem;color:#c8c8d8;line-height:1.85;" id="nc-item1-body">每學期最高補助：高中職 6,000 元、大學 12,000 元。符合中低收入戶資格即可申請，向就讀學校提出。</div>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.1rem;">
+      <div style="font-size:.95rem;font-weight:800;color:var(--gold);margin-bottom:8px;" id="nc-item2-title">🗣 語言學習課程</div>
+      <div style="font-size:.85rem;color:#c8c8d8;line-height:1.85;" id="nc-item2-body">政府提供免費中文課程與生活適應輔導班，費用全額補助。可向移民署或新住民家庭服務中心申請。</div>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.1rem;">
+      <div style="font-size:.95rem;font-weight:800;color:var(--gold);margin-bottom:8px;" id="nc-item3-title">💼 就業協助服務</div>
+      <div style="font-size:.85rem;color:#c8c8d8;line-height:1.85;" id="nc-item3-body">免費職業訓練、就業媒合、通譯服務。撥打就業服務專線 0800-777-888 可以您的母語諮詢。</div>
+    </div>
+  </div>
+
+  <div class="office-card">
+    <div class="office-header">📞 移民署服務站</div>
+    <div class="office-item"><div><div class="oi-name">移民署臺北服務站</div><div class="oi-addr">臺北市中正區廣州街15號</div></div><div class="oi-phone">02-2388-9393</div></div>
+    <div class="office-item"><div><div class="oi-name">新住民諮詢專線</div><div class="oi-addr">全國統一，週一至週五</div></div><div class="oi-phone">0800-024-111</div></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo('scr-welcome')">← 返回</button>
+    <button class="btn btn-primary" onclick="goChecklist('newcomer')">📎 文件清單</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══════════ SCREEN: SINGLEPARENT ══════════ -->
+<div class="screen" id="scr-singleparent">
+  <div class="sec-lbl">👩‍👧 單親家庭一站式申請</div>
+  <div class="q-title">整合三部會補助</div>
+  <div class="q-sub">衛福部、勞動部、教育部補助一次查完、同一平台送件</div>
+
+  <!-- 補助項目勾選 -->
+  <div class="cl-wrap">
+    <div class="cl-header">✅ 選擇要申請的補助項目</div>
+    <ul class="cl-list" id="sp-apply-list">
+      <li class="cl-item" onclick="toggleSpItem(this)" data-item="emergency"><div class="cl-checkbox"></div><div><div class="cl-name">特殊境遇家庭緊急生活扶助</div><div class="cl-note">衛福部 ／ 最高 5 個月最低生活費</div></div></li>
+      <li class="cl-item" onclick="toggleSpItem(this)" data-item="daycare"><div class="cl-checkbox"></div><div><div class="cl-name">嬰幼兒準公共化托育補助</div><div class="cl-note">衛福部 ／ 0~2 歲，最高 15,000 元/月</div></div></li>
+      <li class="cl-item" onclick="toggleSpItem(this)" data-item="child-life"><div class="cl-checkbox"></div><div><div class="cl-name">未成年子女生活補助</div><div class="cl-note">衛福部 ／ 每人最高 3,000 元/月</div></div></li>
+      <li class="cl-item" onclick="toggleSpItem(this)" data-item="education"><div class="cl-checkbox"></div><div><div class="cl-name">子女就學補助</div><div class="cl-note">教育部 ／ 每學期最高 12,000 元</div></div></li>
+      <li class="cl-item" onclick="toggleSpItem(this)" data-item="employment"><div class="cl-checkbox"></div><div><div class="cl-name">單親就業促進補助</div><div class="cl-note">勞動部 ／ 職業訓練費用補助</div></div></li>
+    </ul>
+    <div class="cl-prog"><span id="sp-done-text">0 / 5 已選擇</span><div class="cl-prog-bar"><div class="cl-prog-fill" id="sp-fill" style="width:0%"></div></div></div>
+  </div>
+
+  <!-- 社工預約 -->
+  <div class="appt-card">
+    <div class="appt-title">📅 線上預約社工訪視</div>
+    <div class="appt-row">
+      <div class="appt-field"><label>姓名</label><input type="text" placeholder="您的姓名" id="appt-name"></div>
+      <div class="appt-field"><label>聯絡電話</label><input type="tel" placeholder="09xx-xxxxxx" id="appt-phone"></div>
+    </div>
+    <!-- 日期：年/月/日三個下拉滾動選單 -->
+    <div style="width:100%;margin-bottom:10px;">
+      <label style="display:block;font-size:.75rem;color:var(--muted);margin-bottom:5px;">希望訪視日期</label>
+      <div class="appt-row-3">
+        <div class="appt-field">
+          <select id="appt-year" onchange="validateApptDate()"></select>
+        </div>
+        <div class="appt-field">
+          <select id="appt-month" onchange="updateApptDays()"></select>
+        </div>
+        <div class="appt-field">
+          <select id="appt-day" onchange="validateApptDate()"></select>
+        </div>
+      </div>
+    </div>
+    <div class="appt-row" style="margin-bottom:4px;">
+      <div class="appt-field"><label>時段</label>
+        <select id="appt-time">
+          <option>上午 09:00–12:00</option>
+          <option>下午 14:00–17:00</option>
+          <option>傍晚 18:00–20:00</option>
+        </select>
+      </div>
+      <div class="appt-field"><label>服務縣市</label>
+        <select id="appt-city">
+          <option>臺北市</option><option>新北市</option><option>桃園市</option>
+          <option>臺中市</option><option>臺南市</option><option>高雄市</option>
+          <option>其他縣市</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-secondary" style="width:100%;margin-top:8px;" onclick="bookSW()">📅 送出預約</button>
+    <div style="font-size:.75rem;color:var(--muted);margin-top:8px;text-align:center;">非辦公時間（18:00–08:00）亦可完成線上預約，社工將於下個工作日確認。</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo('scr-welcome')">← 返回</button>
+    <button class="btn btn-primary" onclick="submitSP()">📤 一鍵送出所有申請</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══════════ SCREEN: CHECKLIST ══════════ -->
+<div class="screen" id="scr-checklist">
+  <div class="sec-lbl">📎 必備文件清單</div>
+  <div class="q-title" style="text-align:left;font-size:1.2rem;margin-bottom:6px;">帶齊這些文件出發</div>
+  <p style="font-size:.82rem;color:var(--muted);margin-bottom:18px;line-height:1.7;align-self:flex-start;">點選每項打勾確認，備齊後再前往辦理。</p>
+  <div class="cl-wrap">
+    <div class="cl-header">📎 文件清單</div>
+    <ul class="cl-list" id="cl-list"></ul>
+    <div class="cl-prog"><span id="cl-done-text">0 / 0 已備妥</span><div class="cl-prog-bar"><div class="cl-prog-fill" id="cl-fill" style="width:0%"></div></div></div>
+  </div>
+  <div class="print-bar">
+    <div class="print-bar-title">傳送或儲存清單</div>
+    <div class="print-row">
+      <button class="print-btn" onclick="exportLINE('cl')"><span class="pb-icon">💬</span><span class="pb-lbl">傳至 LINE</span></button>
+      <button class="print-btn" onclick="exportPrint('cl')"><span class="pb-icon">🖨</span><span class="pb-lbl">列印</span></button>
+      <button class="print-btn" onclick="exportCopy('cl')"><span class="pb-icon">📋</span><span class="pb-lbl">複製</span></button>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="cl-back-btn" onclick="goTo('scr-welcome')">← 返回</button>
+    <button class="btn btn-primary" onclick="goTo('scr-welcome')">🏠 首頁</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══ SCREEN: TRANSLATE ══ -->
+<div class="screen" id="scr-translate">
+  <div class="sec-lbl">🤖 白話翻譯</div>
+  <div class="q-title">公文 / 補助說明白話化</div>
+  <div class="q-sub">將看不懂的官方文件或補助條件貼入，系統自動翻成白話文</div>
+
+  <div class="trans-screen-card">
+    <div class="trans-screen-header">📋 貼上原始文件內容</div>
+    <div class="trans-screen-body">
+      <textarea class="doc-input" id="trans-input" placeholder="例如：「依社會救助法第四條規定，家庭總收入平均分配全家人口，每人每月未超過最低生活費標準者…」"></textarea>
+      <button class="btn btn-primary" style="margin-top:12px;" onclick="runTranslate()">🤖 白話化翻譯</button>
+      <div class="thinking-bar" id="trans-thinking">
+        <div class="dot-pulse"><span></span><span></span><span></span></div>
+        AI 正在分析中，請稍候…
+      </div>
+      <div class="trans-result-block" id="trans-result"></div>
+    </div>
+  </div>
+
+  <div class="trans-screen-card">
+    <div class="trans-screen-header">💡 常見公文用語對照表</div>
+    <div class="trans-screen-body" style="font-size:.85rem;color:#c8c8d8;line-height:2;">
+      <span style="color:var(--gold);font-weight:700;">最低生活費</span> → 每縣市不同，約 14,000～17,000 元/月<br>
+      <span style="color:var(--gold);font-weight:700;">家庭總收入平均分配</span> → 家裡所有收入 ÷ 幾個人<br>
+      <span style="color:var(--gold);font-weight:700;">動產及不動產</span> → 現金存款 + 土地房屋<br>
+      <span style="color:var(--gold);font-weight:700;">列冊低收入戶</span> → 政府已正式認定您為低收入戶<br>
+      <span style="color:var(--gold);font-weight:700;">特殊境遇家庭</span> → 單親、家暴、配偶失蹤等困境家庭<br>
+      <span style="color:var(--gold);font-weight:700;">核定補助</span> → 政府決定給你這筆補助<br>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo('scr-welcome')">← 返回首頁</button>
+    <button class="btn btn-primary" onclick="exportCopy('trans')">📋 複製翻譯結果</button>
+  </div>
+  <div class="pb-bar"></div>
+</div>
+
+<!-- ══ Tab Bar ══ -->
+<div class="tab-bar">
+  <button class="tbb active" id="tbb-home" onclick="goTab('scr-welcome')"><span class="ti">🏠</span>首頁</button>
+  <button class="tbb" id="tbb-query" onclick="goTabQuery()"><span class="ti">🔍</span>查詢</button>
+  <button class="tbb" id="tbb-translate" onclick="goTranslate()"><span class="ti">🤖</span>白話翻譯</button>
+  <button class="tbb" id="tbb-cl" onclick="goTab('scr-checklist')"><span class="ti">📋</span>清單</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════
+   補助小幫手 — 完整互動邏輯
+══════════════════════════════════════════════ */
+
+// ── 當前族群狀態 ──
+let currentCat = null;
+let currentLang = 'zh';
+let currentTribe = 'amis';
+let lastResultCat = null;
+let lastResultItems = [];
+let voiceRecognition = null;
+let draftTimer = null;
+
+// ── 畫面切換 ──
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('active'); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  updateTabBar(id);
+}
+
+function updateTabBar(id) {
+  document.querySelectorAll('.tbb').forEach(b => b.classList.remove('active'));
+  if (id === 'scr-welcome') {
+    document.getElementById('tbb-home').classList.add('active');
+  } else if (id === 'scr-checklist') {
+    document.getElementById('tbb-cl').classList.add('active');
+  } else {
+    document.getElementById('tbb-query').classList.add('active');
+  }
+}
+
+function goTab(id) { goTo(id); }
+
+// ── 進入族群 ──
+function enterCat(cat) {
+  currentCat = cat;
+
+  // A11Y Bar：只有長者顯示
+  const a11y = document.getElementById('a11y-bar');
+  a11y.classList.toggle('hidden', cat !== 'elderly');
+
+  // Lang Bar：新住民 & 原住民顯示
+  const lang = document.getElementById('lang-bar');
+  const showLang = (cat === 'newcomer' || cat === 'indigenous');
+  lang.classList.toggle('hidden', !showLang);
+
+  const MAP = {
+    elderly: 'scr-elderly',
+    lowincome: 'scr-lowincome',
+    disability: 'scr-disability',
+    indigenous: 'scr-indigenous',
+    newcomer: 'scr-newcomer',
+    singleparent: 'scr-singleparent',
+  };
+  const target = MAP[cat];
+  if (target) goTo(target);
+
+  // 身心障礙：初始化輔具列表
+  if (cat === 'disability') renderDevices('all', '');
+  // 身心障礙：啟動草稿自動儲存
+  if (cat === 'disability') startDraftSave();
+}
+
+// ══════════════════
+// A11Y — 字體切換
+// ══════════════════
+function setFont(size) {
+  const root = document.getElementById('html-root');
+  root.classList.remove('font-lg', 'font-xl');
+  if (size === 'lg') root.classList.add('font-lg');
+  if (size === 'xl') root.classList.add('font-xl');
+  // 更新按鈕狀態
+  document.querySelectorAll('.a11y-btn').forEach(b => b.classList.remove('active'));
+  const MAP = { normal: 0, lg: 1, xl: 2 };
+  const btns = document.querySelectorAll('.a11y-btn');
+  if (btns[MAP[size]]) btns[MAP[size]].classList.add('active');
+}
+
+// ══════════════════
+// 語音輸入 (Web Speech API)
+// ══════════════════
+function startVoice(scope) {
+  const btn = document.getElementById('voice-btn-' + scope);
+  const transcript = document.getElementById('voice-transcript-' + scope);
+  if (!btn || !transcript) return;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast('您的瀏覽器不支援語音輸入，請改用 Chrome');
+    return;
+  }
+  if (voiceRecognition) { voiceRecognition.stop(); voiceRecognition = null; return; }
+
+  voiceRecognition = new SpeechRecognition();
+  voiceRecognition.lang = 'zh-TW';
+  voiceRecognition.continuous = false;
+  voiceRecognition.interimResults = true;
+
+  btn.classList.add('listening');
+  btn.textContent = '🔴 聆聽中… 點此停止';
+  transcript.textContent = '請說話…';
+
+  voiceRecognition.onresult = function(e) {
+    let text = '';
+    for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+    transcript.textContent = '「' + text + '」';
+    // 嘗試從語音解析年齡
+    const ageMatch = text.match(/(\d{2,3})\s*歲/);
+    if (ageMatch && scope === 'elderly') {
+      const age = Math.min(100, Math.max(60, parseInt(ageMatch[1])));
+      const slider = document.getElementById('age-slider');
+      if (slider) { slider.value = age; document.getElementById('age-val').textContent = age; }
+    }
+  };
+  voiceRecognition.onerror = function() {
+    showToast('語音辨識失敗，請再試一次');
+    resetVoiceBtn(scope);
+  };
+  voiceRecognition.onend = function() {
+    resetVoiceBtn(scope);
+    voiceRecognition = null;
+  };
+  voiceRecognition.start();
+}
+
+function resetVoiceBtn(scope) {
+  const btn = document.getElementById('voice-btn-' + scope);
+  if (btn) { btn.classList.remove('listening'); btn.textContent = '🎙 點此語音輸入（例如：「我 72 歲，獨居，輕度失能」）'; }
+}
+
+function toggleVoiceGlobal() {
+  startVoice(currentCat === 'elderly' ? 'elderly' : 'global');
+}
+
+// ══════════════════
+// 長者補助計算
+// ══════════════════
+const ELDERLY_SUBSIDIES = [
+  { id:'agri', name:'老農津貼', amount:'8,316 元/月', icon:'🌾', level:'high',
+    desc:'65 歲以上、參加農保、農地面積符合規定，即可申請。',
+    cond: (age, inc, dis) => age >= 65 },
+  { id:'elderly-life', name:'老人生活津貼', amount:'最高 8,712 元/月', icon:'🏠', level:'high',
+    desc:'65 歲以上低收入戶長者，依失能等級分級發放 5,848～8,712 元。',
+    cond: (age, inc, dis) => age >= 65 && (inc === 'low' || inc === 'mid-low') },
+  { id:'ltc', name:'長期照顧 ABC 服務', amount:'依評估核定', icon:'♿', level:'high',
+    desc:'失能等級 2 級以上即可申請，含居家服務、日照、喘息服務等。',
+    cond: (age, inc, dis) => dis >= 2 },
+  { id:'caregiver', name:'家庭照顧者喘息補助', amount:'每年最高 14 天', icon:'💆', level:'mid',
+    desc:'照顧失能長者之家屬，可申請喘息服務，暫由政府代為照顧。',
+    cond: (age, inc, dis) => dis >= 1 },
+  { id:'denture', name:'老人假牙補助', amount:'最高 40,000 元', icon:'🦷', level:'mid',
+    desc:'65 歲以上中低收入戶，全口缺牙或部分缺牙均可申請。',
+    cond: (age, inc, dis) => age >= 65 && (inc === 'low' || inc === 'mid-low') },
+  { id:'flu', name:'流感疫苗免費接種', amount:'免費', icon:'💉', level:'high',
+    desc:'65 歲以上每年公費接種一劑流感疫苗。',
+    cond: (age, inc, dis) => age >= 65 },
+  { id:'emergency', name:'緊急救援通報系統', amount:'每月 50 元以下', icon:'🆘', level:'mid',
+    desc:'獨居長者可申請緊急救援按鈕，低收入戶費用全免。',
+    cond: (age, inc, dis) => age >= 65 && inc === 'low' },
+  { id:'mid-assist', name:'中低收入老人特別照顧津貼', amount:'5,000 元/月', icon:'💛', level:'mid',
+    desc:'中低收入戶、失能等級 2 以上，由家人照顧者可領取照顧者津貼。',
+    cond: (age, inc, dis) => (inc === 'low' || inc === 'mid-low') && dis >= 2 },
+];
+
+function calcElderly() {
+  const age = parseInt(document.getElementById('age-slider').value) || 65;
+  const dis = parseInt(document.getElementById('dis-slider').value) || 0;
+  const incEl = document.querySelector('#elderly-income .income-opt.selected');
+  const inc = incEl ? incEl.dataset.val : 'mid';
+
+  const matched = ELDERLY_SUBSIDIES.filter(s => s.cond(age, inc, dis));
+  lastResultCat = 'elderly';
+  lastResultItems = matched;
+
+  // 更新 tags
+  const tags = document.getElementById('elderly-tags');
+  const incLabel = { low:'低收入戶', 'mid-low':'中低收入戶', mid:'一般戶' };
+  tags.innerHTML = `<span class="tag">年齡 ${age} 歲</span><span class="tag">${incLabel[inc] || '一般'}</span>${dis > 0 ? `<span class="tag">失能 ${dis} 級</span>` : ''}`;
+
+  document.getElementById('elderly-count').textContent = matched.length;
+
+  const list = document.getElementById('elderly-list');
+  list.innerHTML = matched.length === 0
+    ? '<div style="color:var(--muted);font-size:.88rem;text-align:center;padding:16px;">目前條件下未找到符合補助，請嘗試調整篩選條件。</div>'
+    : matched.map(s => `
+      <div class="result-item">
+        <div class="ri-emoji">${s.icon}</div>
+        <div>
+          <div class="ri-name">${s.name}</div>
+          <div class="ri-desc">${s.desc}</div>
+          <span class="${s.level === 'high' ? 'badge-high' : 'badge-mid'}">${s.level === 'high' ? '✦ 高度符合' : '▸ 可能符合'} · ${s.amount}</span>
+        </div>
+      </div>`).join('');
+
+  goTo('scr-elderly-result');
+}
+
+function selectSingle(groupId, btn) {
+  document.querySelectorAll('#' + groupId + ' .income-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ══════════════════
+// 低收入資格試算
+// ══════════════════
+const MLL_MAP = { tp: 17661, ntpc: 16000, tc: 14230, tn: 14230, kh: 14230, other: 14230 };
+const ASSET_LIMIT = { tp: 2500000, ntpc: 2000000, tc: 1800000, tn: 1800000, kh: 1800000, other: 1800000 };
+
+function updateMLL() {
+  // nothing needed — values are read dynamically in runCalc
+}
+
+function runCalc() {
+  const city = document.getElementById('calc-city').value;
+  const people = parseInt(document.getElementById('calc-people').value) || 1;
+  const income = parseInt(document.getElementById('calc-income').value) || 0;
+  const asset = parseInt(document.getElementById('calc-asset').value) || 0;
+
+  const mll = MLL_MAP[city] || 14230;
+  const assetLimit = ASSET_LIMIT[city] || 1800000;
+  const perPerson = Math.round(income / people);
+  const perPersonAsset = Math.round(asset / people);
+
+  const res = document.getElementById('calc-result');
+  res.className = 'calc-result show';
+
+  let html = `<strong>每人平均月收入：${perPerson.toLocaleString()} 元</strong><br>`;
+  html += `最低生活費標準：${mll.toLocaleString()} 元／人<br><br>`;
+
+  if (asset > 0 && perPersonAsset > assetLimit) {
+    res.classList.add('no');
+    html += `❌ 每人財產 ${perPersonAsset.toLocaleString()} 元 > 上限 ${assetLimit.toLocaleString()} 元<br>財產超過標準，<strong>不符合</strong>低/中低收入戶資格。`;
+  } else if (perPerson <= mll) {
+    res.classList.add('qualify');
+    html += `✅ <strong>符合低收入戶資格</strong>（每人月收入 ≤ 最低生活費）<br>請攜帶戶口名簿、所得證明前往社會局申請。`;
+  } else if (perPerson <= mll * 1.5) {
+    res.classList.remove('qualify', 'no');
+    res.classList.add('mid');
+    html += `⚠️ <strong>符合中低收入戶資格</strong>（每人月收入 ≤ 最低生活費 1.5 倍）<br>可申請中低收入戶相關補助，部分縣市上限為 1.7 倍，建議向社會局確認。`;
+  } else {
+    res.classList.add('no');
+    html += `❌ 每人月收入 ${perPerson.toLocaleString()} 元 > 標準 ${(mll * 1.5).toLocaleString()} 元<br><strong>不符合</strong>低收入或中低收入資格。如有特殊困境，可洽社工評估。`;
+  }
+  res.innerHTML = html;
+}
+
+// ══════════════════
+// 輔具搜尋 (身心障礙)
+// ══════════════════
+const DEVICES = [
+  { name:'手動輪椅', cat:'move', limit:'12,000 元（5 年）', keys:['輪椅','wheel'] },
+  { name:'電動輪椅', cat:'move', limit:'58,000 元（5 年）', keys:['電動','輪椅'] },
+  { name:'助行器', cat:'move', limit:'2,000 元（3 年）', keys:['助行','walker'] },
+  { name:'拐杖（單支）', cat:'move', limit:'500 元（1 年）', keys:['拐杖','cane'] },
+  { name:'助聽器（單耳）', cat:'sense', limit:'16,000 元（5 年）', keys:['助聽','hearing'] },
+  { name:'助聽器（雙耳）', cat:'sense', limit:'32,000 元（5 年）', keys:['助聽','hearing'] },
+  { name:'視覺輔助放大鏡', cat:'sense', limit:'4,000 元（3 年）', keys:['放大鏡','視覺','magnifier'] },
+  { name:'溝通板／AAC 軟體', cat:'comm', limit:'20,000 元（3 年）', keys:['溝通','AAC','言語'] },
+  { name:'點字顯示器', cat:'comm', limit:'60,000 元（5 年）', keys:['點字','braille'] },
+  { name:'防走失 GPS 裝置', cat:'daily', limit:'3,000 元（3 年）', keys:['GPS','定位','走失'] },
+  { name:'浴室防滑設施', cat:'daily', limit:'2,000 元（5 年）', keys:['防滑','浴室','安全'] },
+  { name:'居家照顧床', cat:'daily', limit:'18,000 元（5 年）', keys:['照顧床','醫療床','hospital bed'] },
+];
+
+let activeCatFilter = 'all';
+
+function filterDevices() {
+  const kw = (document.getElementById('device-search').value || '').trim().toLowerCase();
+  renderDevices(activeCatFilter, kw);
+}
+
+function filterCat(el, cat) {
+  activeCatFilter = cat;
+  document.querySelectorAll('#device-cats .device-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filterDevices();
+}
+
+function renderDevices(cat, kw) {
+  const container = document.getElementById('device-results');
+  let list = DEVICES;
+  if (cat !== 'all') list = list.filter(d => d.cat === cat);
+  if (kw) list = list.filter(d =>
+    d.name.toLowerCase().includes(kw) || d.keys.some(k => k.toLowerCase().includes(kw))
+  );
+  if (list.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:16px;">找不到符合的輔具品項</div>';
+    return;
+  }
+  container.innerHTML = list.map(d => `
+    <div class="device-item">
+      <div class="device-name">${d.name}</div>
+      <div class="device-limit">${d.limit}</div>
+    </div>`).join('');
+}
+
+// 草稿自動儲存（localStorage）
+function startDraftSave() {
+  if (draftTimer) clearInterval(draftTimer);
+  draftTimer = setInterval(() => {
+    try {
+      const draft = {
+        deviceSearch: (document.getElementById('device-search') || {}).value || '',
+        activeCat: activeCatFilter,
+        ts: Date.now()
+      };
+      localStorage.setItem('draft-disability', JSON.stringify(draft));
+    } catch(e) {}
+  }, 3000);
+  // 載入已存草稿
+  try {
+    const saved = JSON.parse(localStorage.getItem('draft-disability') || 'null');
+    if (saved) {
+      const el = document.getElementById('device-search');
+      if (el && saved.deviceSearch) { el.value = saved.deviceSearch; filterDevices(); }
+    }
+  } catch(e) {}
+}
+
+// ══════════════════
+// 原住民族語音 TTS
+// ══════════════════
+const TRIBE_VOICES = {
+  zh:     { lang: 'zh-TW', rate: 0.9 },
+  amis:   { lang: 'zh-TW', rate: 0.85 },
+  paiwan: { lang: 'zh-TW', rate: 0.85 },
+  atayal: { lang: 'zh-TW', rate: 0.85 },
+  bunun:  { lang: 'zh-TW', rate: 0.85 },
+  hokkien:{ lang: 'zh-TW', rate: 0.88 },
+};
+
+function selectTribe(el, tribe) {
+  currentTribe = tribe;
+  document.querySelectorAll('[data-tribe]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// 目前播放狀態
+let activeVoiceBtn = null;
+
+function playVoice(key, text) {
+  if (!window.speechSynthesis) { showToast('您的瀏覽器不支援語音合成'); return; }
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  const cfg = TRIBE_VOICES[currentTribe] || TRIBE_VOICES.zh;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = cfg.lang;
+  utter.rate = cfg.rate;
+  utter.pitch = 1.0;
+  function doSpeak() {
+    const voices = synth.getVoices();
+    const zhVoice = voices.find(v => v.lang.startsWith('zh'));
+    if (zhVoice) utter.voice = zhVoice;
+    if (synth.paused) synth.resume();
+    synth.speak(utter);
+    showToast('▶ 播放中…');
+    utter.onerror = function(e) { showToast('語音播放失敗：' + (e.error || '未知錯誤'), 2000); };
+  }
+  if (synth.getVoices().length === 0) {
+    synth.addEventListener('voiceschanged', doSpeak, { once: true });
+  } else {
+    doSpeak();
+  }
+}
+
+// ── 帶控制列的語音播放 ──
+function playVoiceCtrl(key, text, btn) {
+  if (!window.speechSynthesis) { showToast('您的瀏覽器不支援語音合成'); return; }
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  resetAllVoiceBtns();
+
+  const cfg = TRIBE_VOICES[currentTribe] || TRIBE_VOICES.zh;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = cfg.lang;
+  utter.rate = cfg.rate;
+  utter.pitch = 1.0;
+
+  activeVoiceBtn = btn;
+
+  function doSpeak() {
+    const voices = synth.getVoices();
+    const zhVoice = voices.find(v => v.lang.startsWith('zh'));
+    if (zhVoice) utter.voice = zhVoice;
+    if (synth.paused) synth.resume();
+    synth.speak(utter);
+
+    // 控制列顯示
+    const bar = document.getElementById('voice-ctrl-bar');
+    const lbl = document.getElementById('voice-ctrl-label');
+    if (bar) { bar.style.display = 'flex'; }
+    if (lbl) { lbl.textContent = '▶ 播放中：' + text.substring(0, 18) + '…'; }
+    if (btn) { btn.textContent = '▶ 播放中…'; btn.style.color = 'var(--gold)'; }
+
+    utter.onend = function() {
+      resetAllVoiceBtns();
+      const bar = document.getElementById('voice-ctrl-bar');
+      if (bar) bar.style.display = 'none';
+    };
+    utter.onerror = function(e) {
+      showToast('語音播放失敗：' + (e.error || '未知'), 2000);
+      resetAllVoiceBtns();
+      const bar = document.getElementById('voice-ctrl-bar');
+      if (bar) bar.style.display = 'none';
+    };
+  }
+
+  if (synth.getVoices().length === 0) {
+    synth.addEventListener('voiceschanged', doSpeak, { once: true });
+  } else {
+    doSpeak();
+  }
+}
+
+function togglePauseVoice() {
+  const synth = window.speechSynthesis;
+  const pauseBtn = document.getElementById('voice-pause-btn');
+  const lbl = document.getElementById('voice-ctrl-label');
+  if (!synth) return;
+  if (synth.speaking && !synth.paused) {
+    synth.pause();
+    if (pauseBtn) pauseBtn.textContent = '▶ 繼續';
+    if (lbl) lbl.textContent = '⏸ 已暫停';
+  } else if (synth.paused) {
+    synth.resume();
+    if (pauseBtn) pauseBtn.textContent = '⏸ 暫停';
+    if (lbl) lbl.textContent = '▶ 播放中…';
+  }
+}
+
+function stopVoice() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  resetAllVoiceBtns();
+  const bar = document.getElementById('voice-ctrl-bar');
+  if (bar) bar.style.display = 'none';
+}
+
+function resetAllVoiceBtns() {
+  ['vbtn-agri','vbtn-indig','vbtn-scholar'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) { b.textContent = '▶ 播放語音'; b.style.color = ''; }
+  });
+  const pauseBtn = document.getElementById('voice-pause-btn');
+  if (pauseBtn) pauseBtn.textContent = '⏸ 暫停';
+  activeVoiceBtn = null;
+}
+
+function searchSocialWorker(val) {
+  // 靜態資料示範：依輸入簡單篩選
+  const SW_DATA = [
+    { name:'花蓮縣原住民族行政處', addr:'花蓮縣花蓮市府前路17號', phone:'03-833-8141', keys:['花蓮','秀林','萬榮','卓溪'] },
+    { name:'臺東縣原住民族行政處', addr:'臺東縣臺東市中山路276號', phone:'089-326-141', keys:['臺東','台東','成功','長濱','延平','海端'] },
+    { name:'南投縣原住民族行政局', addr:'南投縣南投市中興新村省府路1號', phone:'049-223-1111', keys:['南投','仁愛','信義','魚池'] },
+    { name:'新竹縣原住民族行政處', addr:'新竹縣竹北市光明六路10號', phone:'03-551-8101', keys:['新竹','五峰','尖石','關西'] },
+    { name:'行政院原住民族委員會', addr:'臺北市中正區濟南路1段2-2號', phone:'02-3343-2700', keys:['全國','諮詢','臺北','台北'] },
+  ];
+  const q = val.trim().toLowerCase();
+  const container = document.getElementById('sw-results');
+  if (!q) {
+    container.innerHTML = SW_DATA.slice(0,2).map(r => swRow(r)).join('');
+    return;
+  }
+  const res = SW_DATA.filter(r => r.name.includes(val) || r.addr.includes(val) || r.keys.some(k => k.includes(val)));
+  container.innerHTML = res.length ? res.map(r => swRow(r)).join('') : '<div style="color:var(--muted);font-size:.85rem;padding:1rem 1.1rem;">查無相關社工聯絡資料，請電洽原民會 02-3343-2700</div>';
+}
+
+function swRow(r) {
+  return `<div class="office-item"><div><div class="oi-name">${r.name}</div><div class="oi-addr">${r.addr}</div></div><div class="oi-phone">${r.phone}</div></div>`;
+}
+
+// ══════════════════
+// 新住民多語言切換
+// ══════════════════
+const LANG_CONTENT = {
+  zh: {
+    lbl: '🌏 新住民補助指南', title: '補助資格查詢', sub: '請切換上方語言，填寫基本資料查詢可申請補助',
+    calcHdr: '🔍 補助資格試算', calcBtn: '🔍 查詢符合補助',
+    f1: '居留類型', f2: '居住縣市', f3: '家庭人口數', f4: '家庭月收入（元）', f5: '子女在學人數（0 = 無）',
+    i1t: '📚 子女就學補助', i1b: '每學期最高補助：高中職 6,000 元、大學 12,000 元。符合中低收入戶資格即可申請，向就讀學校提出。',
+    i2t: '🗣 語言學習課程', i2b: '政府提供免費中文課程與生活適應輔導班，費用全額補助。可向移民署或新住民家庭服務中心申請。',
+    i3t: '💼 就業協助服務', i3b: '免費職業訓練、就業媒合、通譯服務。撥打就業服務專線 0800-777-888 可以您的母語諮詢。',
+  },
+  vi: {
+    lbl: '🌏 Hướng dẫn trợ cấp tân cư dân', title: 'Tra cứu điều kiện hưởng trợ cấp', sub: 'Chọn ngôn ngữ và điền thông tin cơ bản để tìm trợ cấp phù hợp',
+    calcHdr: '🔍 Kiểm tra điều kiện trợ cấp', calcBtn: '🔍 Tìm trợ cấp phù hợp',
+    f1: 'Loại cư trú', f2: 'Thành phố', f3: 'Số thành viên gia đình', f4: 'Thu nhập hàng tháng (NTD)', f5: 'Số con đang đi học (0 = không)',
+    i1t: '📚 Trợ cấp học tập cho con', i1b: 'Trợ cấp tối đa mỗi học kỳ: THPT 6.000 NTD, Đại học 12.000 NTD. Hộ thu nhập thấp hoặc trung bình thấp đủ điều kiện nộp đơn tại trường.',
+    i2t: '🗣 Khóa học ngôn ngữ', i2b: 'Chính phủ cung cấp khóa học tiếng Trung miễn phí và các lớp thích nghi cuộc sống được trợ cấp hoàn toàn. Liên hệ Cục Di trú hoặc Trung tâm dịch vụ gia đình tân cư dân.',
+    i3t: '💼 Dịch vụ hỗ trợ việc làm', i3b: 'Đào tạo nghề miễn phí, giới thiệu việc làm và dịch vụ phiên dịch. Gọi đường dây 0800-777-888 để tư vấn bằng tiếng mẹ đẻ.',
+  },
+  id: {
+    lbl: '🌏 Panduan Subsidi Imigran Baru', title: 'Cek Kelayakan Subsidi', sub: 'Pilih bahasa dan isi data dasar untuk menemukan subsidi yang sesuai',
+    calcHdr: '🔍 Pemeriksa Kelayakan Subsidi', calcBtn: '🔍 Cari Subsidi yang Sesuai',
+    f1: 'Jenis Izin Tinggal', f2: 'Kota', f3: 'Jumlah Anggota Keluarga', f4: 'Pendapatan Bulanan (NTD)', f5: 'Jumlah Anak Sekolah (0 = tidak ada)',
+    i1t: '📚 Subsidi Pendidikan Anak', i1b: 'Subsidi maksimal per semester: SMA/SMK 6.000 NTD, Universitas 12.000 NTD. Keluarga berpenghasilan rendah atau menengah rendah dapat mengajukan permohonan ke sekolah.',
+    i2t: '🗣 Kursus Bahasa', i2b: 'Pemerintah menyediakan kursus bahasa Mandarin gratis dan kelas adaptasi kehidupan yang disubsidi penuh. Hubungi Kantor Imigrasi atau Pusat Layanan Keluarga Imigran Baru.',
+    i3t: '💼 Layanan Bantuan Kerja', i3b: 'Pelatihan vokasi gratis, penempatan kerja, dan layanan penerjemah. Hubungi 0800-777-888 untuk konsultasi dalam bahasa ibu Anda.',
+  },
+  th: {
+    lbl: '🌏 คู่มือเงินอุดหนุนผู้อยู่อาศัยใหม่', title: 'ตรวจสอบคุณสมบัติรับเงินอุดหนุน', sub: 'เลือกภาษาและกรอกข้อมูลพื้นฐานเพื่อค้นหาเงินอุดหนุนที่เหมาะสม',
+    calcHdr: '🔍 ตรวจสอบคุณสมบัติ', calcBtn: '🔍 ค้นหาเงินอุดหนุน',
+    f1: 'ประเภทการพำนัก', f2: 'เมือง', f3: 'จำนวนสมาชิกในครอบครัว', f4: 'รายได้รายเดือน (NTD)', f5: 'จำนวนบุตรที่กำลังศึกษา (0 = ไม่มี)',
+    i1t: '📚 เงินอุดหนุนการศึกษาบุตร', i1b: 'อุดหนุนสูงสุดต่อภาคเรียน: มัธยม 6,000 NTD มหาวิทยาลัย 12,000 NTD ครัวเรือนรายได้ต่ำหรือปานกลาง-ต่ำสามารถยื่นที่โรงเรียน',
+    i2t: '🗣 หลักสูตรเรียนภาษา', i2b: 'รัฐบาลจัดหลักสูตรภาษาจีนฟรีและชั้นเรียนปรับตัวการใช้ชีวิตอุดหนุนเต็มจำนวน ติดต่อสำนักงานตรวจคนเข้าเมืองหรือศูนย์บริการครอบครัวผู้อยู่อาศัยใหม่',
+    i3t: '💼 บริการช่วยเหลือการจ้างงาน', i3b: 'ฝึกอาชีพฟรี จัดหางาน และบริการล่าม โทร 0800-777-888 ปรึกษาเป็นภาษาแม่ของคุณ',
+  },
+  tl: {
+    lbl: '🌏 Gabay sa Subsidyo para sa Bagong Residente', title: 'Suriin ang Kwalipikasyon sa Subsidyo', sub: 'Pumili ng wika at punan ang datos upang mahanap ang angkop na subsidyo',
+    calcHdr: '🔍 Suriin ang Kwalipikasyon', calcBtn: '🔍 Hanapin ang Subsidyo',
+    f1: 'Uri ng Pahintulot sa Paninirahan', f2: 'Lungsod', f3: 'Bilang ng Miyembro ng Pamilya', f4: 'Buwanang Kita (NTD)', f5: 'Bilang ng Anak na Nag-aaral (0 = wala)',
+    i1t: '📚 Subsidyo sa Edukasyon ng Anak', i1b: 'Pinakamataas na subsidyo bawat semestre: Senior High 6,000 NTD, Unibersidad 12,000 NTD. Maaaring mag-apply ang pamilyang may mababang kita sa paaralan.',
+    i2t: '🗣 Mga Kurso sa Wika', i2b: 'Nagbibigay ang pamahalaan ng libreng kurso sa Intsik at ganap na subsidyadong klase sa adaptasyon ng buhay. Makipag-ugnayan sa NIA o Sentro ng Serbisyo ng Pamilya ng Bagong Residente.',
+    i3t: '💼 Serbisyo sa Tulong sa Trabaho', i3b: 'Libreng bokasyonal na pagsasanay, pagtatambal ng trabaho, at serbisyo ng tagapagsalin. Tumawag sa 0800-777-888 para sa konsultasyon sa inyong sariling wika.',
+  },
+  en: {
+    lbl: '🌏 New Resident Subsidy Guide', title: 'Subsidy Eligibility Check', sub: 'Select a language and fill in basic info to find subsidies you qualify for',
+    calcHdr: '🔍 Subsidy Eligibility Calculator', calcBtn: '🔍 Find Matching Subsidies',
+    f1: 'Residence Permit Type', f2: 'City', f3: 'Household Size', f4: 'Monthly Income (NTD)', f5: 'Number of School-age Children (0 = none)',
+    i1t: '📚 Children\'s Education Subsidy', i1b: 'Maximum subsidy per semester: Senior High 6,000 NTD, University 12,000 NTD. Low or middle-low income households can apply through the school.',
+    i2t: '🗣 Language Learning Courses', i2b: 'Free Mandarin courses and fully subsidized life-adaptation classes are provided by the government. Contact the NIA or New Resident Family Service Center to apply.',
+    i3t: '💼 Employment Assistance Services', i3b: 'Free vocational training, job placement, and interpreter services. Call 0800-777-888 for consultation in your native language.',
+  },
+};
+
+function setLang(lang, btn) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const c = LANG_CONTENT[lang] || LANG_CONTENT.zh;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+  set('nc-lbl', c.lbl); set('nc-title', c.title); set('nc-sub', c.sub);
+  set('nc-calc-hdr', c.calcHdr);
+  const calcBtn = document.getElementById('nc-calc-btn');
+  if (calcBtn) calcBtn.textContent = c.calcBtn;
+  // 欄位 label
+  ['nc-f1-lbl','nc-f2-lbl','nc-f3-lbl','nc-f4-lbl','nc-f5-lbl'].forEach((id, i) => {
+    set(id, [c.f1, c.f2, c.f3, c.f4, c.f5][i]);
+  });
+  set('nc-item1-title', c.i1t); set('nc-item1-body', c.i1b);
+  set('nc-item2-title', c.i2t); set('nc-item2-body', c.i2b);
+  set('nc-item3-title', c.i3t); set('nc-item3-body', c.i3b);
+}
+
+// ══════════════════
+// 新住民補助試算
+// ══════════════════
+const NEWCOMER_SUBSIDIES = [
+  {
+    icon:'📚', name:'子女就學補助', amount:'每學期最高 12,000 元',
+    level:'high',
+    desc:'符合中低收入戶資格的新住民子女，就讀高中職或大學均可向學校申請。',
+    cond: (permit, mll, perPerson, children) => children >= 1 && perPerson <= mll * 1.5,
+  },
+  {
+    icon:'🗣', name:'生活適應輔導班（免費中文課）', amount:'全額補助',
+    level:'high',
+    desc:'無論居留類型，凡新住民均可免費參加，由移民署或各縣市辦理。',
+    cond: (permit, mll, perPerson, children) => true,
+  },
+  {
+    icon:'💼', name:'就業促進服務', amount:'免費職訓 + 媒合',
+    level:'high',
+    desc:'持居留證以上資格者可參加免費職業訓練，並享有通譯服務協助求職。',
+    cond: (permit, mll, perPerson, children) => permit === 'resident' || permit === 'settled' || permit === 'naturalized',
+  },
+  {
+    icon:'🏠', name:'低收入戶生活補助', amount:'依失能等級 5,848～8,712 元/月',
+    level:'high',
+    desc:'歸化取得國籍且符合低收入戶資格，可比照本國公民申請各項生活補助。',
+    cond: (permit, mll, perPerson, children) => permit === 'naturalized' && perPerson <= mll,
+  },
+  {
+    icon:'👶', name:'托育補助（準公共化）', amount:'最高 15,000 元/月',
+    level:'mid',
+    desc:'0～2 歲幼兒送往合作托嬰中心，依收入等級補助。歸化或定居證家庭可申請。',
+    cond: (permit, mll, perPerson, children) => (permit === 'settled' || permit === 'naturalized') && children >= 1,
+  },
+  {
+    icon:'🎓', name:'新住民子女多元文化獎助學金', amount:'每學期 3,000～6,000 元',
+    level:'mid',
+    desc:'教育部針對新住民子女設有專屬獎助學金，就讀國中小即可申請，不限收入。',
+    cond: (permit, mll, perPerson, children) => children >= 1,
+  },
+  {
+    icon:'🆘', name:'特殊境遇家庭緊急生活扶助', amount:'最高 5 個月最低生活費',
+    level:'mid',
+    desc:'遭遇配偶失蹤、家暴或急難情況，符合條件者可向社會局申請緊急扶助。',
+    cond: (permit, mll, perPerson, children) => perPerson <= mll * 2.5,
+  },
+];
+
+function calcNewcomer() {
+  const permit = document.getElementById('nc-permit').value;
+  const city   = document.getElementById('nc-city').value;
+  const people = parseInt(document.getElementById('nc-people').value) || 1;
+  const income = parseInt(document.getElementById('nc-income').value) || 0;
+  const children = parseInt(document.getElementById('nc-children').value) || 0;
+
+  const mll = MLL_MAP[city] || 14230;
+  const perPerson = Math.round(income / people);
+
+  const matched = NEWCOMER_SUBSIDIES.filter(s => s.cond(permit, mll, perPerson, children));
+
+  const res = document.getElementById('nc-calc-result');
+  res.className = 'calc-result show';
+
+  let summary = `<strong>每人平均月收入：${perPerson.toLocaleString()} 元</strong>`;
+  if (perPerson <= mll) {
+    res.classList.add('qualify');
+    summary += '&nbsp;&nbsp;<span style="color:var(--green)">● 低收入戶</span>';
+  } else if (perPerson <= mll * 1.5) {
+    res.classList.add('mid');
+    summary += '&nbsp;&nbsp;<span style="color:#fbbf24">● 中低收入戶</span>';
+  } else {
+    res.classList.add('no');
+    summary += '&nbsp;&nbsp;<span style="color:#f87171">● 一般戶</span>';
+  }
+  summary += `<br><span style="font-size:.8rem;">找到 <strong>${matched.length}</strong> 項可能符合的補助</span>`;
+
+  const items = matched.map(s => `
+    <div style="margin-top:10px;padding:.8rem;background:var(--s3);border-radius:var(--r-md);border-left:3px solid ${s.level==='high'?'var(--green)':'#fbbf24'};">
+      <div style="font-size:.88rem;font-weight:700;color:#fff;">${s.icon} ${s.name}</div>
+      <div style="font-size:.75rem;color:var(--muted);margin:.3rem 0;">${s.desc}</div>
+      <span class="${s.level==='high'?'badge-high':'badge-mid'}">${s.level==='high'?'✦ 高度符合':'▸ 可能符合'} · ${s.amount}</span>
+    </div>`).join('');
+
+  res.innerHTML = summary + items;
+}
+
+// ══════════════════
+// 文件清單
+// ══════════════════
+const CHECKLISTS = {
+  elderly: [
+    { name:'身分證正反面影本', note:'本人及申請人' },
+    { name:'戶口名簿', note:'全戶影本' },
+    { name:'最近三個月所得證明', note:'國稅局或薪資單' },
+    { name:'農保加保資料', note:'農保補助適用' },
+    { name:'失能評估報告', note:'長照服務適用，CMS 評估表' },
+    { name:'存摺封面影本', note:'匯款用途' },
+    { name:'1 吋照片 2 張', note:'部分縣市需要' },
+  ],
+  lowincome: [
+    { name:'戶口名簿', note:'全戶影本' },
+    { name:'全戶前一年所得清單', note:'國稅局財產及所得清單' },
+    { name:'財產申報書', note:'包含不動產、存款、車輛' },
+    { name:'租賃契約書', note:'若無自有住宅' },
+    { name:'身分證影本', note:'全戶成員' },
+    { name:'診斷證明書', note:'若有身心障礙成員' },
+    { name:'銀行存摺封面', note:'撥款帳戶' },
+  ],
+  disability: [
+    { name:'身心障礙證明', note:'最新版本' },
+    { name:'醫師診斷書', note:'輔具補助申請用' },
+    { name:'身分證影本', note:'申請人本人' },
+    { name:'照片（2 吋）2 張', note:'' },
+    { name:'戶口名簿影本', note:'' },
+    { name:'銀行存摺封面', note:'補助款撥入帳戶' },
+    { name:'輔具試用報告', note:'特定輔具需事前評估' },
+  ],
+  indigenous: [
+    { name:'原住民族身分證明', note:'族別登錄' },
+    { name:'戶口名簿', note:'全戶影本' },
+    { name:'身分證影本', note:'' },
+    { name:'最近三個月薪資單或所得證明', note:'' },
+    { name:'農保或勞保加保資料', note:'適用特定補助' },
+    { name:'銀行存摺封面', note:'' },
+  ],
+  newcomer: [
+    { name:'外僑居留證或定居證', note:'有效期限內' },
+    { name:'護照正本及影本', note:'' },
+    { name:'結婚證書', note:'含中文譯本' },
+    { name:'全戶戶口名簿', note:'配偶為臺灣籍' },
+    { name:'子女就讀學校在學證明', note:'教育補助適用' },
+    { name:'銀行存摺封面', note:'' },
+    { name:'近期生活照 2 張', note:'部分機構需要' },
+  ],
+  singleparent: [
+    { name:'戶口名簿全戶影本', note:'確認單親狀態' },
+    { name:'離婚判決書或協議書', note:'或配偶死亡證明' },
+    { name:'身分證影本', note:'' },
+    { name:'子女出生證明', note:'' },
+    { name:'最近三個月薪資單', note:'' },
+    { name:'低收入戶或特境家庭認定函', note:'若已取得' },
+    { name:'銀行存摺封面', note:'補助款帳戶' },
+  ],
+  cl: [],
+};
+
+let checklistCat = null;
+
+function goChecklist(cat) {
+  checklistCat = cat;
+  renderChecklist(cat);
+  // 更新返回按鈕目標
+  const backBtn = document.getElementById('cl-back-btn');
+  const MAP = { elderly:'scr-elderly-result', lowincome:'scr-lowincome', disability:'scr-disability', indigenous:'scr-indigenous', newcomer:'scr-newcomer', singleparent:'scr-singleparent' };
+  if (backBtn) backBtn.setAttribute('onclick', `goTo('${MAP[cat] || 'scr-welcome'}')`);
+  goTo('scr-checklist');
+}
+
+function renderChecklist(cat) {
+  const items = CHECKLISTS[cat] || CHECKLISTS.elderly;
+  const list = document.getElementById('cl-list');
+  list.innerHTML = items.map((item, i) => `
+    <li class="cl-item" onclick="toggleCL(this,${i})" data-idx="${i}">
+      <div class="cl-checkbox"></div>
+      <div>
+        <div class="cl-name">${item.name}</div>
+        ${item.note ? `<div class="cl-note">${item.note}</div>` : ''}
+      </div>
+    </li>`).join('');
+  updateCLProgress(items.length);
+}
+
+function toggleCL(el, idx) {
+  el.classList.toggle('checked');
+  const items = document.querySelectorAll('#cl-list .cl-item');
+  const done = document.querySelectorAll('#cl-list .cl-item.checked').length;
+  updateCLProgress(items.length, done);
+}
+
+function updateCLProgress(total, done = 0) {
+  document.getElementById('cl-done-text').textContent = `${done} / ${total} 已備妥`;
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('cl-fill').style.width = pct + '%';
+}
+
+// ══════════════════
+// 單親家庭
+// ══════════════════
+function toggleSpItem(el) {
+  el.classList.toggle('checked');
+  const all = document.querySelectorAll('#sp-apply-list .cl-item').length;
+  const done = document.querySelectorAll('#sp-apply-list .cl-item.checked').length;
+  document.getElementById('sp-done-text').textContent = `${done} / ${all} 已選擇`;
+  document.getElementById('sp-fill').style.width = Math.round(done / all * 100) + '%';
+}
+
+function bookSW() {
+  const name = (document.getElementById('appt-name').value || '').trim();
+  const phone = (document.getElementById('appt-phone').value || '').trim();
+  const year = document.getElementById('appt-year').value;
+  const month = document.getElementById('appt-month').value;
+  const day = document.getElementById('appt-day').value;
+  const time = document.getElementById('appt-time').value;
+  const city = (document.getElementById('appt-city') || {}).value || '';
+  if (!name || !phone || !year || !month || !day) { showToast('請填寫姓名、電話及預約日期'); return; }
+  showToast(`✅ 預約成功！社工將於工作日確認\n${year}年${month}月${day}日 ${time}${city ? '（' + city + '）' : ''}`);
+}
+
+function submitSP() {
+  const selected = document.querySelectorAll('#sp-apply-list .cl-item.checked');
+  if (selected.length === 0) { showToast('請先選擇要申請的補助項目'); return; }
+  const items = Array.from(selected).map(el => el.querySelector('.cl-name').textContent);
+  showToast(`📤 已送出 ${items.length} 項申請，請留意 SMS 通知`);
+  goChecklist('singleparent');
+}
+
+// ══════════════════
+// 匯出功能
+// ══════════════════
+function buildExportText(scope) {
+  if (scope === 'cl') {
+    const title = '📎 備齊文件清單\n' + '='.repeat(24) + '\n';
+    const items = Array.from(document.querySelectorAll('#cl-list .cl-item')).map((el, i) => {
+      const checked = el.classList.contains('checked') ? '✅' : '☐';
+      const name = (el.querySelector('.cl-name') || {}).textContent || '';
+      const note = (el.querySelector('.cl-note') || {}).textContent || '';
+      return `${checked} ${i + 1}. ${name}${note ? '（' + note + '）' : ''}`;
+    }).join('\n');
+    return title + items + '\n\n— 補助小幫手';
+  }
+  if (scope === 'elderly') {
+    const tags = document.getElementById('elderly-tags').textContent;
+    const title = `📊 補助查詢結果（${tags}）\n` + '='.repeat(24) + '\n';
+    const items = lastResultItems.map((s, i) => `${i + 1}. ${s.icon} ${s.name}｜${s.amount}\n   ${s.desc}`).join('\n\n');
+    return title + items + '\n\n— 補助小幫手';
+  }
+  if (scope === 'trans') {
+    if (!lastTranslateText) return '（尚未進行翻譯）';
+    return '🤖 白話翻譯結果\n' + '='.repeat(24) + '\n' + lastTranslateText + '\n\n— 補助小幫手';
+  }
+  return '補助小幫手 — 查詢結果';
+}
+
+function exportCopy(scope) {
+  const text = buildExportText(scope);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast('✅ 已複製到剪貼簿'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); showToast('✅ 已複製到剪貼簿'); } catch(e) { showToast('複製失敗，請手動複製'); }
+    document.body.removeChild(ta);
+  }
+}
+
+function exportLINE(scope) {
+  const text = encodeURIComponent(buildExportText(scope));
+  window.open('https://line.me/R/msg/text/?' + text, '_blank');
+}
+
+function exportPrint(scope) {
+  const text = buildExportText(scope);
+  const win = window.open('', '_blank', 'width=600,height=700');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>補助小幫手</title><style>body{font-family:"Microsoft JhengHei",sans-serif;padding:24px;line-height:1.9;white-space:pre-wrap;font-size:14px;}</style></head><body>${text.replace(/\n/g,'<br>')}</body></html>`);
+  win.document.close();
+  win.print();
+}
+
+// ══════════════════
+// 白話翻譯（底部 Tab）
+// ══════════════════
+function goTranslate() {
+  goTo('scr-translate');
+  document.querySelectorAll('.tbb').forEach(b => b.classList.remove('active'));
+  document.getElementById('tbb-translate').classList.add('active');
+}
+
+function goTabQuery() {
+  // 若已進入某族群，回到該族群畫面；否則回首頁
+  const MAP = {
+    elderly: 'scr-elderly', lowincome: 'scr-lowincome',
+    disability: 'scr-disability', indigenous: 'scr-indigenous',
+    newcomer: 'scr-newcomer', singleparent: 'scr-singleparent',
+  };
+  const target = (currentCat && MAP[currentCat]) ? MAP[currentCat] : 'scr-welcome';
+  goTo(target);
+  document.querySelectorAll('.tbb').forEach(b => b.classList.remove('active'));
+  document.getElementById('tbb-query').classList.add('active');
+}
+
+// ══════════════════
+// 白話翻譯邏輯
+// ══════════════════
+const TRANSLATE_RULES = [
+  { re: /家庭總收入平均分配全家人口/g, to: '全家收入總和 ÷ 人數' },
+  { re: /最低生活費標準/g, to: '各縣市設定的基本生活門檻（約 14,230～17,661 元／人）' },
+  { re: /動產及不動產/g, to: '現金存款、股票＋土地、房屋' },
+  { re: /列冊(低收入戶|中低收入戶)/g, to: '已通過政府審核，正式納入$1名單' },
+  { re: /核定補助/g, to: '政府已批准這筆補助，確定會給您' },
+  { re: /特殊境遇家庭/g, to: '遭遇困境的家庭（如單親、家暴、配偶失聯等）' },
+  { re: /依.*?法.*?條.*?規定[，,]?/g, to: '根據相關法律規定：' },
+  { re: /未超過/g, to: '沒有超過' },
+  { re: /不得超過/g, to: '不可以超過' },
+  { re: /得申請/g, to: '可以申請' },
+  { re: /應檢附/g, to: '必須附上' },
+  { re: /逕行/g, to: '直接' },
+  { re: /俾利/g, to: '為了方便' },
+  { re: /爰此/g, to: '因此' },
+];
+
+function runTranslate() {
+  const input = (document.getElementById('trans-input').value || '').trim();
+  if (!input) { showToast('請先貼上要翻譯的文字'); return; }
+
+  const thinking = document.getElementById('trans-thinking');
+  const result = document.getElementById('trans-result');
+  thinking.classList.add('show');
+  result.classList.remove('show');
+
+  setTimeout(() => {
+    thinking.classList.remove('show');
+    let out = input;
+    TRANSLATE_RULES.forEach(r => { out = out.replace(r.re, r.to); });
+
+    // 段落化輸出
+    const paras = out.split(/[。！？\n]/).map(s => s.trim()).filter(Boolean);
+    result.innerHTML = paras.map(p => `<p style="margin-bottom:.7rem;">• ${p}。</p>`).join('');
+    result.classList.add('show');
+    lastTranslateText = out;
+  }, 1200);
+}
+
+let lastTranslateText = '';
+
+// ══════════════════
+// Toast 通知
+// ══════════════════
+let _toastTimer = null;
+function showToast(msg, ms = 3000) {
+  if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  _toastTimer = setTimeout(() => { t.classList.remove('show'); _toastTimer = null; }, ms);
+}
+
+// ══════════════════
+// 初始化
+// ══════════════════
+// ══════════════════
+// 預約日期下拉選單初始化
+// ══════════════════
+function initApptDate() {
+  const now = new Date();
+  const todayY = now.getFullYear();
+  const todayM = now.getMonth() + 1;
+  const todayD = now.getDate();
+
+  // 年份：今年 + 明年
+  const yearSel = document.getElementById('appt-year');
+  yearSel.innerHTML = '';
+  for (let y = todayY; y <= todayY + 1; y++) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y + ' 年';
+    yearSel.appendChild(opt);
+  }
+
+  // 月份
+  const monthSel = document.getElementById('appt-month');
+  monthSel.innerHTML = '';
+  for (let m = 1; m <= 12; m++) {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = m + ' 月';
+    if (m === todayM) opt.selected = true;
+    monthSel.appendChild(opt);
+  }
+
+  // 日期（依月/年動態計算）
+  updateApptDays();
+
+  // 預設今天
+  document.getElementById('appt-day').value = todayD;
+}
+
+function updateApptDays() {
+  const y = parseInt(document.getElementById('appt-year').value) || new Date().getFullYear();
+  const m = parseInt(document.getElementById('appt-month').value) || (new Date().getMonth() + 1);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const prevDay = parseInt(document.getElementById('appt-day').value) || 1;
+  const daySel = document.getElementById('appt-day');
+  daySel.innerHTML = '';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d + ' 日';
+    daySel.appendChild(opt);
+  }
+  daySel.value = Math.min(prevDay, daysInMonth);
+}
+
+function validateApptDate() {
+  // 防止選到過去日期
+  const y = parseInt(document.getElementById('appt-year').value);
+  const m = parseInt(document.getElementById('appt-month').value);
+  const d = parseInt(document.getElementById('appt-day').value);
+  const sel = new Date(y, m - 1, d);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  if (sel < today) showToast('⚠️ 請選擇今天或之後的日期');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // 鍵盤無障礙：Enter / Space 觸發 .cat-card
+  document.querySelectorAll('.cat-card').forEach(card => {
+    card.setAttribute('tabindex', '0');
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    });
+  });
+  // 初始化預約日期下拉選單
+  initApptDate();
+});
+</script>
+</body>
+</html>
