@@ -1,0 +1,4298 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>申請補助小幫手</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── 字體大小變數 ── */
+    :root { font-size: 16px; }
+    :root.fs-large  { font-size: 20px; }
+    :root.fs-xlarge { font-size: 24px; }
+    body {
+      font-family: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: #f3f4f6;
+      color: #1f2328;
+      min-height: 100vh;
+    }
+
+    /* ── 高對比模式 ── */
+    body.high-contrast {
+      background: #000 !important;
+      color: #fff !important;
+    }
+    body.high-contrast header { background: #002060 !important; }
+    body.high-contrast .step-block,
+    body.high-contrast .map-panel,
+    body.high-contrast .info-panel > div,
+    body.high-contrast .subsidy-card { background: #111 !important; border-color: #fff !important; color: #fff !important; }
+    body.high-contrast .cat-btn { background: #111 !important; border-color: #aaa !important; color: #fff !important; }
+    body.high-contrast .cat-btn:hover,
+    body.high-contrast .cat-btn.active { background: #003080 !important; border-color: #7af !important; }
+    body.high-contrast .section-intro { background: #1a1a1a !important; color: #ddd !important; }
+    body.high-contrast .conditions-list li { background: #1a1a1a !important; color: #eee !important; }
+    body.high-contrast .checklist li { border-color: #555 !important; color: #eee !important; }
+    body.high-contrast .county-path:not(.active) { opacity: .2 !important; }
+    body.high-contrast .info-county-title { color: #7af !important; }
+    body.high-contrast .select-row select { background: #111 !important; color: #fff !important; border-color: #aaa !important; }
+    body.high-contrast .step-label { color: #bbb !important; }
+
+    /* ── 無障礙工具列 ── */
+    .a11y-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: #1f2328;
+      padding: 6px 20px;
+      font-size: .78rem;
+    }
+    .a11y-label {
+      color: #9ca3af;
+      font-size: .72rem;
+      margin-right: 2px;
+      white-space: nowrap;
+    }
+    .a11y-btn {
+      padding: 3px 10px;
+      border: 1px solid #444;
+      border-radius: 999px;
+      background: transparent;
+      color: #e6edf3;
+      font-size: .75rem;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .a11y-btn:hover { background: rgba(255,255,255,.12); border-color: #888; }
+    .a11y-btn.active { background: #3b82d4; border-color: #3b82d4; color: #fff; }
+    .a11y-sep { color: #444; padding: 0 4px; }
+
+    header {
+      background: #1a56a0;
+      color: #fff;
+      padding: 18px 24px;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: .03em; }
+    header p  { font-size: .875rem; font-weight: 400; opacity: .85; margin-top: 4px; }
+
+    .steps-wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 64px;
+    }
+
+    .step-block {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .step-label {
+      font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+      color: #6b7280; text-transform: uppercase; margin-bottom: 14px;
+    }
+
+    /* ── Step 1：類別按鈕 ── */
+    .categories { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cat-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 14px 20px;
+      border: 2px solid #e5e7eb; border-radius: 999px;
+      background: #fff; cursor: pointer;
+      transition: border-color .15s, background .15s;
+      min-width: 110px;
+      --accent: #3b82d4; --bg-light: #eff6ff;
+    }
+    .cat-btn .icon { font-size: 1.5rem; }
+    .cat-btn .label { font-size: .85rem; font-weight: 600; color: #374151; }
+    .cat-btn:hover, .cat-btn.active { border-color: var(--accent); background: var(--bg-light); }
+    .cat-btn.active .icon, .cat-btn.active .label { color: var(--accent); }
+    .cat-btn[data-cat="elderly"]      { --accent: #d97706; --bg-light: #fffbeb; }
+    .cat-btn[data-cat="lowincome"]    { --accent: #2563eb; --bg-light: #eff6ff; }
+    .cat-btn[data-cat="disability"]   { --accent: #7c3aed; --bg-light: #f5f3ff; }
+    .cat-btn[data-cat="indigenous"]   { --accent: #059669; --bg-light: #ecfdf5; }
+    .cat-btn[data-cat="singleparent"] { --accent: #db2777; --bg-light: #fdf2f8; }
+
+    /* ── Step 2 ── */
+    #step2-block { display: none; }
+    .select-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .select-row label { font-size: .9rem; font-weight: 600; color: #374151; white-space: nowrap; }
+    .select-row select {
+      flex: 1; min-width: 200px;
+      padding: 9px 12px;
+      border: 1.5px solid #d1d5db; border-radius: 999px;
+      font-size: .9rem; background: #fff; color: #1f2328; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+    }
+    .select-row select:focus { outline: none; border-color: #3b82d4; }
+    .btn-query {
+      padding: 9px 24px; background: #1a56a0; color: #fff;
+      border: none; border-radius: 999px; font-size: .9rem; font-weight: 600;
+      cursor: pointer; transition: background .15s; white-space: nowrap;
+    }
+    .btn-query:hover { background: #3b82d4; }
+
+    /* ── Step 3+4 ── */
+    #step34-block { display: none; }
+    .map-result-layout { display: flex; gap: 16px; align-items: flex-start; }
+
+    /* 地圖 */
+    .map-panel {
+      flex: 0 0 420px; background: #fff;
+      border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;
+    }
+    .map-panel h2 { font-size: .82rem; font-weight: 600; color: #6b7280; margin-bottom: 10px; text-align: center; }
+    #taiwan-map { width: 100%; height: auto; display: block; }
+    .county-path { stroke: #fff; stroke-width: 0.5; cursor: default; transition: opacity .15s; }
+    .county-path.active { cursor: pointer; }
+    .county-path.active:hover { opacity: .75; }
+    .county-path.selected { stroke: #1a56a0; stroke-width: 2.5; filter: drop-shadow(0 0 4px rgba(26,86,160,.5)); }
+    .county-path:not(.active) { fill: #d1d5db !important; opacity: .45; }
+
+    .c-keelung { fill: #a8d5ba; } .c-taipei { fill: #4e9af1; }
+    .c-new-taipei { fill: #6cb4e4; } .c-taoyuan { fill: #cc80ff; }
+    .c-hsinchu-city { fill: #aaaaaa; } .c-hsinchu { fill: #c5c5c5; }
+    .c-miaoli { fill: #00d4d4; } .c-taichung { fill: #a0c96c; }
+    .c-changhua { fill: #66b2b2; } .c-nantou { fill: #4db870; }
+    .c-yunlin { fill: #5bc0de; } .c-chiayi-city { fill: #f0ad4e; }
+    .c-chiayi { fill: #ffd27f; } .c-tainan { fill: #c8a2d4; }
+    .c-kaohsiung { fill: #ff8c69; } .c-pingtung { fill: #7fbf7f; }
+    .c-yilan { fill: #b87c5a; } .c-hualien { fill: #ff80c0; }
+    .c-taitung { fill: #7ec8e3; } .c-penghu { fill: #e8e066; }
+    .c-kinmen { fill: #d4a96a; } .c-lienchiang { fill: #aaaaff; }
+    .c-default { fill: #d1d5db; }
+
+    .county-label {
+      font-size: 7px; fill: #374151; text-anchor: middle;
+      dominant-baseline: middle; pointer-events: none;
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    }
+
+    /* 結果面板 */
+    .info-panel { flex: 1; min-width: 0; }
+    .info-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      padding: 40px 20px; color: #9ca3af;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    }
+    .info-placeholder p { font-size: 14px; }
+    .info-content { display: none; flex-direction: column; gap: 12px; }
+    .info-content.visible { display: flex; }
+    .info-county-title { font-size: 1.1rem; font-weight: 700; color: #1a56a0; padding-bottom: 4px; }
+
+    .subsidy-card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+      padding: 20px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .section-intro {
+      font-size: .9rem; color: #374151; line-height: 1.65;
+      padding: 10px 14px; background: #f7f8fa;
+      border-left: 3px solid #3b82d4; border-radius: 0 6px 6px 0;
+    }
+    .section-label {
+      font-size: .78rem; font-weight: 700; letter-spacing: .06em;
+      color: #6b7280; text-transform: uppercase; margin-top: 2px;
+    }
+
+    /* 申請條件 */
+    .conditions-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .conditions-list li {
+      display: flex; gap: 8px; font-size: .875rem; color: #374151;
+      padding: 6px 10px; background: #f7f8fa; border-radius: 6px;
+    }
+    .conditions-list li::before { content: "▸"; color: #1a56a0; flex-shrink: 0; margin-top: 1px; }
+
+    /* 文件 Checklist */
+    .checklist-header { display: flex; align-items: center; justify-content: space-between; }
+    .copy-btn {
+      padding: 5px 14px; background: #1a56a0; color: #fff;
+      border: none; border-radius: 6px; font-size: .8rem; cursor: pointer; transition: background .15s;
+    }
+    .copy-btn:hover { background: #3b82d4; }
+    .copy-btn.copied { background: #16a34a; }
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .checklist li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: .875rem; color: #374151;
+      padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px;
+      cursor: pointer; transition: background .1s;
+    }
+    .checklist li:hover { background: #f0f4ff; }
+    .checklist li input[type="checkbox"] { width: 16px; height: 16px; accent-color: #1a56a0; cursor: pointer; flex-shrink: 0; margin-top: 1px; }
+    .checklist li.checked { text-decoration: line-through; color: #9ca3af; background: #f9fafb; }
+
+    /* 申辦步驟 */
+    .steps-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .steps-list li { display: flex; align-items: flex-start; gap: 12px; font-size: .875rem; color: #374151; }
+    .step-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; min-width: 24px;
+      border-radius: 50%; background: #1a56a0; color: #fff;
+      font-size: .75rem; font-weight: 700;
+    }
+
+    /* 未開放 */
+    .not-available {
+      display: none; flex-direction: column; align-items: center; gap: 12px;
+      padding: 40px 20px; color: #9ca3af;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    }
+    .not-available.visible { display: flex; }
+    .not-available p { font-size: 14px; text-align: center; line-height: 1.6; }
+
+    /* 全國通用標籤 */
+    .national-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #dbeafe; color: #1d4ed8; border-radius: 999px;
+      font-size: .75rem; font-weight: 600; padding: 2px 10px;
+      margin-bottom: 4px;
+    }
+
+    /* Google 地圖按鈕區 */
+    .map-btn-row {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      padding-top: 4px; border-top: 1px solid #e5e7eb; margin-top: 4px;
+    }
+    .map-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 999px; font-size: .85rem; font-weight: 600;
+      cursor: pointer; border: none; transition: background .15s, transform .1s;
+      text-decoration: none;
+    }
+    .map-btn:active { transform: scale(.97); }
+    .map-btn-near {
+      background: #1a56a0; color: #fff;
+    }
+    .map-btn-near:hover { background: #3b82d4; }
+    .map-btn-search {
+      background: #f3f4f6; color: #374151; border: 1.5px solid #d1d5db;
+    }
+    .map-btn-search:hover { background: #e5e7eb; }
+    body.high-contrast .map-btn-near  { background: #003080 !important; color: #fff !important; }
+    body.high-contrast .map-btn-search { background: #111 !important; color: #eee !important; border-color: #666 !important; }
+
+    @media (max-width: 720px) {
+      .map-result-layout { flex-direction: column; }
+      .map-panel { flex: none; width: 100%; }
+      .cat-btn { padding: 12px 14px; min-width: 90px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── 無障礙工具列 ── -->
+<div class="a11y-bar" role="toolbar" aria-label="無障礙工具">
+  <span class="a11y-label">🔡 字體</span>
+  <button class="a11y-btn active" id="fs-normal"  onclick="setFontSize('normal')" title="標準字體">標準</button>
+  <button class="a11y-btn"        id="fs-large"   onclick="setFontSize('large')"  title="大字體">大</button>
+  <button class="a11y-btn"        id="fs-xlarge"  onclick="setFontSize('xlarge')" title="特大字體">特大</button>
+  <span class="a11y-sep">|</span>
+  <button class="a11y-btn" id="hc-btn" onclick="toggleHighContrast()" title="高對比模式">⬛ 高對比</button>
+</div>
+
+<header>
+  <h1>📋 申請補助小幫手</h1>
+  <p>選擇您的身分與補助項目，再點擊地圖上的縣市，即可查詢申請條件與申辦流程</p>
+</header>
+
+<div class="steps-wrap">
+
+  <!-- Step 1 -->
+  <div class="step-block">
+    <div class="step-label">Step 1 &nbsp;選擇身分類別</div>
+    <div class="categories">
+      <button class="cat-btn" data-cat="elderly"      onclick="selectCat(this)"><span class="icon">👴</span><span class="label">長者</span></button>
+      <button class="cat-btn" data-cat="lowincome"    onclick="selectCat(this)"><span class="icon">🏠</span><span class="label">中低收入</span></button>
+      <button class="cat-btn" data-cat="disability"   onclick="selectCat(this)"><span class="icon">♿</span><span class="label">身心障礙</span></button>
+      <button class="cat-btn" data-cat="indigenous"   onclick="selectCat(this)"><span class="icon">🌿</span><span class="label">原住民及新住民</span></button>
+      <button class="cat-btn" data-cat="singleparent" onclick="selectCat(this)"><span class="icon">👨‍👧</span><span class="label">單親家庭</span></button>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-block" id="step2-block">
+    <div class="step-label">Step 2 &nbsp;選擇補助項目</div>
+    <div class="select-row">
+      <label>補助項目</label>
+      <select id="type-select"><option value="">— 請選擇 —</option></select>
+      <button class="btn-query" onclick="handleQuery()">查詢</button>
+    </div>
+  </div>
+
+  <!-- Step 3 + 4 -->
+  <div class="step-block" id="step34-block">
+    <div class="step-label">Step 3 &nbsp;點擊縣市 &nbsp;／&nbsp; Step 4 &nbsp;查看補助資料</div>
+    <div class="map-result-layout">
+
+      <div class="map-panel">
+        <h2>🗺️ 點擊亮起的縣市</h2>
+        <svg id="taiwan-map" viewBox="0 0 380 560" xmlns="http://www.w3.org/2000/svg">
+          <g id="counties-group"></g>
+          <g id="labels-group"></g>
+        </svg>
+      </div>
+
+      <div class="info-panel">
+        <div class="info-placeholder" id="info-placeholder">
+          <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+            <path d="M20,8 L28,4 L42,8 L44,18 L40,30 L32,38 L22,42 L14,36 L10,24 L12,14 Z" stroke="#d1d5db" stroke-width="2" fill="none"/>
+            <circle cx="32" cy="22" r="3" fill="#9ca3af"/>
+            <line x1="32" y1="27" x2="32" y2="34" stroke="#9ca3af" stroke-width="2"/>
+          </svg>
+          <p>請在左邊點擊亮起的縣市</p>
+        </div>
+        <div class="info-content" id="info-content">
+          <div class="info-county-title" id="county-title"></div>
+          <div id="subsidies-container"></div>
+        </div>
+        <div class="not-available" id="not-available">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="20" stroke="#d1d5db" stroke-width="2"/>
+            <line x1="16" y1="16" x2="32" y2="32" stroke="#d1d5db" stroke-width="2"/>
+            <line x1="32" y1="16" x2="16" y2="32" stroke="#d1d5db" stroke-width="2"/>
+          </svg>
+          <p id="not-available-msg">此縣市資料尚未開放</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   內嵌 TopoJSON（不需要 fetch）
+═══════════════════════════════════════ */
+</script>
+<script id="topo-script">
+const TOPO_DATA = {
+  "type": "Topology",
+  "arcs": [
+    [
+      [12095, 26289],
+      [-37, -89],
+      [-78, -35],
+      [-15, 46],
+      [43, 56],
+      [87, 22]
+    ],
+    [
+      [11830, 26364],
+      [21, -26],
+      [-69, -51],
+      [-55, 15],
+      [-13, 59],
+      [116, 3]
+    ],
+    [
+      [11649, 27609],
+      [70, -35],
+      [-20, -55],
+      [113, -15],
+      [47, 55],
+      [68, 5],
+      [17, -64],
+      [-45, -49],
+      [-86, -48],
+      [-50, 16],
+      [-129, -24],
+      [-26, 50],
+      [45, 53],
+      [-18, 30],
+      [14, 81]
+    ],
+    [
+      [12171, 28015],
+      [66, -26],
+      [1, -49],
+      [-67, -55],
+      [-58, 5],
+      [-29, 41],
+      [87, 84]
+    ],
+    [
+      [12126, 28298],
+      [17, -45],
+      [-41, -54],
+      [-47, 20],
+      [71, 79]
+    ],
+    [
+      [15348, 28950],
+      [26, -38],
+      [-13, -38],
+      [71, -2],
+      [24, 50],
+      [59, -85],
+      [-108, -52],
+      [-21, 74],
+      [-28, 12],
+      [-47, 34],
+      [37, 45]
+    ],
+    [
+      [679, 16520],
+      [74, -23],
+      [60, -43],
+      [-19, -116],
+      [-108, -42],
+      [-24, -47],
+      [-92, -10],
+      [-41, -50],
+      [-75, 64],
+      [14, 85],
+      [47, 55],
+      [44, 100],
+      [120, 27]
+    ],
+    [
+      [1748, 17009],
+      [118, -30],
+      [42, -84],
+      [98, -29],
+      [-7, -34],
+      [81, -132],
+      [28, -149],
+      [66, -50],
+      [-25, -78],
+      [-107, -151],
+      [-133, -63],
+      [-55, 102],
+      [-112, 30],
+      [-52, 42],
+      [-110, 1],
+      [-86, -21],
+      [-124, -58],
+      [-83, -92],
+      [-46, -114],
+      [-70, -33],
+      [-87, 25],
+      [-36, 39],
+      [-51, -2],
+      [-47, 61],
+      [-78, 52],
+      [84, 37],
+      [74, 113],
+      [0, 64],
+      [-45, 104],
+      [-60, 81],
+      [43, 97],
+      [97, 38],
+      [70, -17],
+      [87, -91],
+      [125, -48],
+      [84, 0],
+      [104, 87],
+      [44, 55],
+      [-11, 93],
+      [53, 23],
+      [31, 51],
+      [96, 81]
+    ],
+    [
+      [8633, 19960],
+      [-70, -13],
+      [-19, 78],
+      [72, -30],
+      [17, -35]
+    ],
+    [
+      [25082, 19027],
+      [35, -38],
+      [-112, -24],
+      [-52, 21],
+      [48, 82],
+      [81, -41]
+    ],
+    [
+      [25123, 19919],
+      [-196, -60],
+      [-70, -34],
+      [-61, -108],
+      [-187, -108],
+      [-16, -105],
+      [-164, -157],
+      [-60, -28],
+      [-57, -90],
+      [-79, -166],
+      [-42, -139],
+      [-30, -166],
+      [-11, -162],
+      [19, -196],
+      [78, -179],
+      [42, -16],
+      [-19, -60],
+      [12, -228],
+      [22, -107],
+      [70, -182],
+      [92, -117],
+      [97, -28],
+      [27, -38],
+      [-100, -152],
+      [26, -268],
+      [-34, -45],
+      [-175, -47],
+      [-24, -89],
+      [13, -55],
+      [67, -21],
+      [2, -63],
+      [-114, -110],
+      [-86, -42],
+      [10, -36],
+      [-72, -93],
+      [-59, -46],
+      [-71, -168],
+      [-27, -231],
+      [-88, -185],
+      [-18, -72],
+      [21, -112]
+    ],
+    [
+      [23861, 15610],
+      [-99, -7],
+      [-94, 56],
+      [-200, 25],
+      [-112, 49],
+      [-51, -5],
+      [-36, 47],
+      [-66, 17],
+      [-170, 96],
+      [-113, 79],
+      [-61, -25],
+      [0, -61],
+      [37, -50],
+      [51, -7],
+      [-14, -87],
+      [-221, -10],
+      [-18, -34],
+      [68, -100],
+      [-205, 46],
+      [-41, -12],
+      [-62, 31],
+      [-27, 55],
+      [-74, 43],
+      [-28, -13],
+      [-121, 46],
+      [-158, -24],
+      [-83, 59],
+      [-135, 46],
+      [-85, 59]
+    ],
+    [
+      [21743, 15929],
+      [-60, 55],
+      [-34, 62],
+      [-55, 2],
+      [-141, -36],
+      [-48, 13],
+      [-128, -82],
+      [-50, 8],
+      [-57, 135],
+      [-63, 27],
+      [-111, -20],
+      [-88, 108],
+      [16, 40],
+      [4, 135],
+      [-69, 49]
+    ],
+    [
+      [20859, 16425],
+      [41, 98],
+      [80, 68],
+      [42, 93],
+      [101, 32],
+      [85, 72],
+      [18, 78],
+      [68, 3],
+      [53, 89],
+      [65, 33],
+      [-32, 68],
+      [13, 54],
+      [-27, 48],
+      [61, 86],
+      [54, 27],
+      [-60, 120]
+    ],
+    [
+      [21421, 17394],
+      [64, 77],
+      [36, -17],
+      [63, 32],
+      [46, 119],
+      [109, 172],
+      [-23, 26],
+      [76, 116],
+      [135, 5]
+    ],
+    [
+      [21927, 17924],
+      [84, -5],
+      [128, 73],
+      [76, -7],
+      [86, 33],
+      [6, 72],
+      [37, 39],
+      [97, 34],
+      [126, 25],
+      [68, 35],
+      [42, 58],
+      [9, 64],
+      [-36, 82],
+      [4, 57],
+      [46, 76],
+      [-37, 97],
+      [90, 10],
+      [26, 30],
+      [71, -8],
+      [64, 106],
+      [114, 32],
+      [84, -18],
+      [56, 38],
+      [53, -18],
+      [82, 20],
+      [-2, 57],
+      [166, 101],
+      [51, 52],
+      [70, 39],
+      [62, -22],
+      [125, 27],
+      [54, 60],
+      [39, 4],
+      [64, 58],
+      [-21, 89],
+      [71, 69],
+      [118, 23],
+      [141, 8],
+      [133, 122],
+      [-36, 91],
+      [-45, 28],
+      [10, 77],
+      [39, 40],
+      [92, 21],
+      [68, -19],
+      [168, 41],
+      [37, 47],
+      [89, 33],
+      [113, 9],
+      [69, 46],
+      [124, -1],
+      [21, -30]
+    ],
+    [
+      [35057, 24878],
+      [70, -15],
+      [12, -60],
+      [-79, 7],
+      [-83, -41],
+      [-31, 60],
+      [111, 49]
+    ],
+    [
+      [15197, 14913],
+      [314, -104],
+      [25, -25],
+      [117, -249],
+      [-15, -59],
+      [57, -81],
+      [53, -19],
+      [61, -65],
+      [151, -36],
+      [72, 8],
+      [36, -22],
+      [154, -23],
+      [18, -118],
+      [29, -72],
+      [38, -27],
+      [-12, -101],
+      [34, -153],
+      [106, -23],
+      [71, 30],
+      [151, -107]
+    ],
+    [
+      [16657, 13667],
+      [-40, -53],
+      [-42, 12],
+      [-162, 3],
+      [-26, -93],
+      [83, -57],
+      [-22, -139],
+      [-66, -69],
+      [-51, -18],
+      [41, -72],
+      [-36, -60],
+      [49, -31],
+      [-36, -91],
+      [15, -120],
+      [-30, -16],
+      [-61, -153],
+      [46, -58],
+      [-55, -97],
+      [50, -12],
+      [77, -70],
+      [12, -56],
+      [71, -49],
+      [111, 25],
+      [73, -2],
+      [2, -67],
+      [-82, -79],
+      [-172, -49]
+    ],
+    [
+      [16406, 12196],
+      [-167, 34],
+      [-148, -2],
+      [-275, 66],
+      [-142, -13],
+      [-119, 6],
+      [-183, 41],
+      [-205, 70],
+      [-124, 83],
+      [-150, -25],
+      [-263, 14],
+      [-67, -34],
+      [-342, -19],
+      [-349, 90],
+      [-126, 90],
+      [-102, 116]
+    ],
+    [
+      [13644, 12713],
+      [43, 75],
+      [55, 48],
+      [78, 21],
+      [70, 70],
+      [-10, 55],
+      [31, 76],
+      [53, 71],
+      [69, 27],
+      [5, 87],
+      [24, 48],
+      [151, 106],
+      [12, 96],
+      [51, 78],
+      [116, 95],
+      [48, 166],
+      [4, 132],
+      [53, 73],
+      [60, 19],
+      [27, 42],
+      [137, 44],
+      [-16, 59],
+      [99, 133],
+      [29, 81],
+      [91, 178],
+      [7, 77],
+      [109, 110],
+      [74, 15],
+      [83, 118]
+    ],
+    [
+      [21026, 15019],
+      [32, -71],
+      [12, -80],
+      [-157, -26],
+      [-64, -69],
+      [-69, -35],
+      [-115, -16],
+      [-2, -131],
+      [-42, -138],
+      [95, -22],
+      [132, -104],
+      [83, -13],
+      [-22, -81],
+      [-40, -41],
+      [26, -68],
+      [-262, -198],
+      [16, -93],
+      [-59, -98],
+      [-48, -118],
+      [-61, -90],
+      [31, -110],
+      [55, 0],
+      [31, -61],
+      [-17, -35],
+      [-21, -143],
+      [29, -97],
+      [-11, -101],
+      [-56, -2],
+      [-5, -103],
+      [19, -49],
+      [-103, -105],
+      [-26, -99],
+      [-60, -71],
+      [-34, -186],
+      [-46, -23],
+      [-14, -67],
+      [19, -84],
+      [-151, -91],
+      [51, -87],
+      [128, -46],
+      [-25, -40],
+      [82, -228],
+      [-13, -144],
+      [-44, -67],
+      [19, -96],
+      [-74, -144],
+      [3, -79],
+      [-48, -78],
+      [-28, -95],
+      [-45, -27],
+      [-77, 30],
+      [-97, -67],
+      [-68, -23],
+      [-106, 1],
+      [-9, -83],
+      [55, -39],
+      [-21, -53],
+      [-62, -43],
+      [21, -46],
+      [-26, -120],
+      [-75, -77],
+      [-99, 37],
+      [-111, -13],
+      [-76, -27],
+      [-155, 24],
+      [-42, -123],
+      [-61, -38],
+      [-27, -70],
+      [-64, -53],
+      [132, -81],
+      [-46, -70],
+      [-122, -36],
+      [-46, -41],
+      [-74, -24]
+    ],
+    [
+      [18871, 9934],
+      [-31, 71],
+      [35, 33],
+      [-49, 68],
+      [-57, 1],
+      [-136, 46],
+      [-81, 15],
+      [-61, -14]
+    ],
+    [
+      [18491, 10154],
+      [-66, -15],
+      [-62, 37],
+      [-48, -14],
+      [-87, 32],
+      [-200, -1],
+      [-41, -51],
+      [-113, 37],
+      [-162, -14],
+      [-79, 78],
+      [-28, 101],
+      [3, 77],
+      [-33, 81],
+      [-63, 82],
+      [1, 62],
+      [78, 109],
+      [-7, 79],
+      [27, 79],
+      [-64, 89],
+      [-68, -28],
+      [-158, 32],
+      [-100, 69],
+      [-75, 17],
+      [-112, -35],
+      [-33, 8]
+    ],
+    [
+      [17001, 11065],
+      [-1, 47],
+      [-46, 25],
+      [-123, -30],
+      [-89, 20],
+      [-52, -61],
+      [-147, -3],
+      [-65, 37],
+      [15, 81],
+      [-56, 15],
+      [-64, -72],
+      [-29, 12],
+      [-13, 87],
+      [41, 51],
+      [-2, 54],
+      [78, 136],
+      [-1, 124],
+      [-42, 116],
+      [-3, 109],
+      [32, 64],
+      [64, 21],
+      [10, 90],
+      [-49, 125],
+      [-53, 83]
+    ],
+    [
+      [16657, 13667],
+      [107, -45],
+      [76, -12],
+      [84, 29],
+      [82, -5],
+      [95, -67],
+      [77, 47],
+      [84, 21],
+      [36, 65],
+      [59, 41],
+      [80, 99],
+      [64, 151],
+      [53, 36],
+      [94, 11],
+      [-5, 148],
+      [51, 145],
+      [56, 49],
+      [60, 0],
+      [22, -47],
+      [101, -4],
+      [58, -104],
+      [66, -12],
+      [23, 115],
+      [164, -59],
+      [78, 31],
+      [120, 101],
+      [73, -50],
+      [93, -20],
+      [93, 13],
+      [61, 51],
+      [55, 116],
+      [56, 72],
+      [83, 20],
+      [127, 6],
+      [33, -34],
+      [255, 180],
+      [33, 60],
+      [62, 34],
+      [194, -7],
+      [40, 22],
+      [43, 85],
+      [87, 17],
+      [43, 64],
+      [86, -84],
+      [51, 17],
+      [54, 53],
+      [75, -10],
+      [76, 49],
+      [120, -61],
+      [41, 18],
+      [72, 133],
+      [68, 16],
+      [23, -50],
+      [58, -39],
+      [101, -17],
+      [69, 29],
+      [137, -4],
+      [122, -61]
+    ],
+    [
+      [12728, 10506],
+      [64, -25],
+      [18, -62],
+      [-66, 8],
+      [-98, -62],
+      [-53, -146],
+      [-46, 24],
+      [-55, -39],
+      [-102, 15],
+      [-45, -56],
+      [11, -69],
+      [-132, 1],
+      [-50, 35],
+      [23, 46],
+      [103, 73],
+      [144, 81],
+      [170, 117],
+      [114, 59]
+    ],
+    [
+      [12848, 10619],
+      [74, -71],
+      [-22, -20],
+      [-106, 24],
+      [54, 67]
+    ],
+    [
+      [17001, 11065],
+      [-41, -46],
+      [61, -122],
+      [-11, -49],
+      [-94, -52],
+      [-90, 39],
+      [-68, 9],
+      [-116, -37],
+      [-36, 50],
+      [-132, -39],
+      [-34, 136],
+      [-134, -19],
+      [-41, -41],
+      [-60, -10],
+      [-138, 18],
+      [-80, -12],
+      [-132, 60],
+      [-130, 12],
+      [-127, 105],
+      [-119, 155],
+      [-89, -29],
+      [-47, 14],
+      [-153, -40],
+      [-74, 25],
+      [-21, -29],
+      [-125, -43],
+      [-128, 50],
+      [-105, -39],
+      [-45, -71],
+      [-87, -14],
+      [-65, -89],
+      [-151, -14],
+      [-4, -81],
+      [-83, -44],
+      [-56, 16],
+      [-9, -68],
+      [-85, 1],
+      [-55, -22],
+      [11, -64],
+      [-96, -50],
+      [-29, -82],
+      [-56, 18],
+      [-48, 81],
+      [-77, -12],
+      [-16, -36],
+      [31, -160],
+      [-50, -40],
+      [-106, -22],
+      [-118, 49],
+      [-158, -13],
+      [-95, 48],
+      [-56, -9],
+      [-80, 32]
+    ],
+    [
+      [13154, 10485],
+      [29, 72],
+      [-71, 115],
+      [25, 144],
+      [-11, 130],
+      [-30, 181],
+      [-89, 10],
+      [-60, 71],
+      [63, 66],
+      [74, 155],
+      [26, 110],
+      [41, 50],
+      [10, 95],
+      [58, 82],
+      [66, 145],
+      [22, 110],
+      [-80, 165],
+      [161, 167],
+      [67, 51],
+      [105, 122],
+      [-16, 72],
+      [60, 15],
+      [40, 100]
+    ],
+    [
+      [14691, 2970],
+      [62, -42],
+      [-13, -50],
+      [-179, -126],
+      [-41, 47],
+      [63, 68],
+      [-15, 38],
+      [43, 40],
+      [80, 25]
+    ],
+    [
+      [17880, 6113],
+      [3, -118],
+      [24, -52],
+      [56, -24],
+      [92, -9],
+      [80, -77],
+      [-11, -79],
+      [14, -75],
+      [-67, -59],
+      [13, -71],
+      [-6, -117],
+      [-73, -132],
+      [-229, -1],
+      [-56, -66],
+      [-23, -62],
+      [-111, -10],
+      [-6, -30],
+      [-140, -12],
+      [-72, 24],
+      [32, -88],
+      [-35, -46],
+      [1, -58],
+      [-123, -173],
+      [-42, -40],
+      [-55, -116],
+      [12, -68],
+      [-59, -85],
+      [14, -111],
+      [-42, -16],
+      [-14, -111],
+      [70, -112],
+      [25, -150],
+      [58, -63],
+      [8, -64],
+      [-42, -60],
+      [-39, -151],
+      [43, 1],
+      [121, -62],
+      [-10, -30],
+      [96, -172],
+      [-61, -53],
+      [-146, -29],
+      [-38, -83],
+      [-32, -133],
+      [33, -70],
+      [70, -11],
+      [32, -74],
+      [112, -12],
+      [49, -64],
+      [28, -112],
+      [-63, -59],
+      [-59, -4],
+      [-3, -68],
+      [71, -26],
+      [64, -113],
+      [-14, -55],
+      [24, -69],
+      [103, 39],
+      [69, -43],
+      [88, -83],
+      [127, -19],
+      [53, -71],
+      [195, 107]
+    ],
+    [
+      [18089, 2263],
+      [17, -107],
+      [-31, -86],
+      [14, -84],
+      [-37, -52],
+      [23, -147],
+      [-11, -144],
+      [26, -61],
+      [-57, -49],
+      [-2, -68],
+      [32, -80],
+      [63, -32],
+      [-52, -108],
+      [-3, -251],
+      [50, -99],
+      [-79, -55],
+      [-14, -60],
+      [-58, -37],
+      [-16, -77],
+      [-94, -52],
+      [-102, -29],
+      [-24, -234],
+      [43, -105],
+      [90, -104],
+      [-4, -51],
+      [34, -45],
+      [-56, -46],
+      [-49, 5],
+      [-34, 62],
+      [1, 50],
+      [-59, 15],
+      [-98, 118],
+      [-61, -6],
+      [-108, 56],
+      [-89, 9],
+      [-121, 101],
+      [-76, -25],
+      [-31, -37],
+      [-10, -99],
+      [-46, -51],
+      [-2, -42],
+      [-71, -9],
+      [-120, 101],
+      [7, 193],
+      [23, 46],
+      [-10, 61],
+      [-52, 84],
+      [-78, 58],
+      [-56, 138],
+      [12, 57],
+      [61, 66],
+      [8, 77],
+      [45, 7],
+      [9, 95],
+      [-43, 78],
+      [116, 67],
+      [-11, 86],
+      [-41, 104],
+      [-75, 115],
+      [12, 62],
+      [-55, 202],
+      [-47, 109],
+      [6, 77],
+      [-83, 108],
+      [-1, 40],
+      [-93, 62],
+      [-57, 83],
+      [19, 81],
+      [-62, 147],
+      [0, 68],
+      [-43, 72],
+      [-204, 193],
+      [-41, 85],
+      [-88, 88],
+      [-236, 148],
+      [-270, 127],
+      [-329, 176],
+      [-148, 130],
+      [-19, 57],
+      [-57, 2]
+    ],
+    [
+      [14986, 3697],
+      [8, 190],
+      [-19, 131],
+      [56, 169],
+      [35, 19],
+      [40, 95],
+      [28, 154],
+      [-8, 82],
+      [-54, 54],
+      [-25, 67],
+      [14, 83],
+      [5, 223],
+      [39, 126],
+      [33, 24],
+      [54, 195],
+      [-13, 277],
+      [24, 155],
+      [43, 96],
+      [31, 196],
+      [49, 48],
+      [179, -42],
+      [43, -20],
+      [89, 28],
+      [85, -24],
+      [117, -2],
+      [82, 61],
+      [54, 64],
+      [204, 161],
+      [97, 15],
+      [160, 62],
+      [23, -52],
+      [63, 17],
+      [19, -129],
+      [104, -16],
+      [16, 37],
+      [75, 12],
+      [92, 102],
+      [134, 1],
+      [116, -47],
+      [44, -51],
+      [85, -57],
+      [12, -48],
+      [96, -91],
+      [94, 46],
+      [3, 62],
+      [51, -6],
+      [83, 43],
+      [60, 52],
+      [67, 3],
+      [93, -92],
+      [39, 36],
+      [75, -93]
+    ],
+    [
+      [22794, 305],
+      [-49, 62],
+      [69, 15],
+      [-20, -77]
+    ],
+    [
+      [22089, 1221],
+      [57, -29],
+      [255, 15],
+      [52, -15],
+      [43, 25],
+      [29, -126],
+      [-47, -69],
+      [28, -85],
+      [70, -54],
+      [117, -46],
+      [43, -44],
+      [-65, -108],
+      [-153, 14],
+      [-50, 86],
+      [-88, 54],
+      [-67, -8],
+      [-183, 162],
+      [-14, 133],
+      [-62, 67],
+      [35, 28]
+    ],
+    [
+      [22003, 5044],
+      [121, -2],
+      [-8, -150],
+      [-61, -52],
+      [34, -49],
+      [-62, -37],
+      [-61, 74],
+      [-82, 16],
+      [12, 79],
+      [-66, 76],
+      [3, 38],
+      [93, -15],
+      [77, 22]
+    ],
+    [
+      [22025, 9911],
+      [-71, -136],
+      [-14, -87],
+      [-47, -69],
+      [-17, -97],
+      [0, -123],
+      [-30, -44],
+      [0, -89],
+      [-37, -125],
+      [-99, -23],
+      [-93, -134],
+      [-36, -143],
+      [-43, -54],
+      [0, -49],
+      [-39, -98],
+      [36, -55],
+      [-76, -86],
+      [-70, -32],
+      [-11, -78],
+      [18, -83],
+      [28, -28],
+      [27, -106],
+      [-43, -105],
+      [-8, -70],
+      [74, -72],
+      [-27, -52],
+      [-78, -16],
+      [-80, -116],
+      [-111, 4],
+      [-72, -106],
+      [10, -38],
+      [-48, -46],
+      [-20, -89],
+      [-50, -121],
+      [-15, -96],
+      [-51, -26],
+      [-45, -87],
+      [13, -51],
+      [-48, -81],
+      [-140, -172],
+      [-89, -60],
+      [-18, -89],
+      [-67, -132],
+      [-33, -19],
+      [-109, -173],
+      [-48, -11],
+      [-25, -75],
+      [-178, -31],
+      [-115, -87],
+      [-26, -132],
+      [65, -89],
+      [23, -125],
+      [-86, -35],
+      [-43, -50],
+      [-29, -147],
+      [-72, -57],
+      [-60, -25],
+      [-77, -83],
+      [-112, -98],
+      [-177, -91],
+      [-130, -45],
+      [-113, -105],
+      [-58, -38],
+      [-106, -37],
+      [-66, -61],
+      [-46, -75],
+      [-64, -192],
+      [-22, -197],
+      [-155, -126],
+      [-56, -99],
+      [-57, -175],
+      [-60, -143],
+      [-98, -341],
+      [-147, -345],
+      [-47, -87],
+      [-40, -166],
+      [-41, -43],
+      [-50, -115],
+      [-21, -172],
+      [1, -197],
+      [29, -201]
+    ],
+    [
+      [17880, 6113],
+      [32, 96],
+      [-51, 22],
+      [22, 70],
+      [-35, 39],
+      [-117, 19],
+      [-88, 154],
+      [31, 46],
+      [-74, 147],
+      [18, 112],
+      [-25, 55],
+      [61, 58],
+      [13, 65],
+      [59, 26],
+      [7, 46],
+      [121, 109],
+      [19, 156],
+      [105, 16],
+      [12, 61],
+      [-79, 102],
+      [87, 151],
+      [44, 110],
+      [1, 64],
+      [-28, 62],
+      [18, 106],
+      [-15, 53],
+      [-59, 41],
+      [121, 63],
+      [23, 100],
+      [92, 68],
+      [-40, 64],
+      [35, 87],
+      [0, 118],
+      [25, 58],
+      [77, 46],
+      [70, 2],
+      [133, 132],
+      [80, 98],
+      [104, -2],
+      [162, 81],
+      [116, 28]
+    ],
+    [
+      [18957, 9042],
+      [69, 23],
+      [115, -67],
+      [38, -71],
+      [2, -87],
+      [50, -110],
+      [90, -102],
+      [58, 6],
+      [108, -67],
+      [134, -2],
+      [69, -140],
+      [98, -15],
+      [41, 44],
+      [96, 27],
+      [92, -42],
+      [57, -98],
+      [6, -87],
+      [73, -98],
+      [12, -94],
+      [125, -39],
+      [49, -68],
+      [72, 18],
+      [55, -35],
+      [61, -76],
+      [-18, -66],
+      [94, -19],
+      [38, 35],
+      [125, 30],
+      [82, -4],
+      [40, 43],
+      [-11, 133],
+      [27, 72],
+      [-46, 99],
+      [42, 91],
+      [73, -3],
+      [18, 68],
+      [61, 134],
+      [-2, 51],
+      [63, 38],
+      [-24, 53],
+      [59, 101],
+      [-13, 38],
+      [121, 108],
+      [-11, 169],
+      [76, 96],
+      [16, 64],
+      [49, 7],
+      [36, 94],
+      [43, 63],
+      [82, 58],
+      [4, 33],
+      [-110, 35],
+      [-40, 127],
+      [69, 89],
+      [60, 132],
+      [91, 86],
+      [50, 9],
+      [33, 60],
+      [105, -25],
+      [74, 6],
+      [43, -61],
+      [99, 5]
+    ],
+    [
+      [23861, 15610],
+      [-30, -81],
+      [-105, -93],
+      [-36, -54],
+      [-26, -120],
+      [-104, -101],
+      [-75, -18],
+      [-71, -111],
+      [-223, -128],
+      [-59, -75],
+      [-31, -144],
+      [37, -106],
+      [-3, -135],
+      [-57, -84],
+      [-175, -121],
+      [-61, -85],
+      [-19, -71],
+      [2, -110],
+      [27, -85],
+      [65, -116],
+      [86, -71],
+      [28, -67],
+      [-129, -255],
+      [-40, 55],
+      [-42, -31],
+      [-52, -84],
+      [-6, -47],
+      [32, -126],
+      [-44, -145],
+      [4, -74],
+      [-49, -273],
+      [-82, -179],
+      [-16, -61],
+      [-45, -58],
+      [-27, -83],
+      [-11, -101],
+      [11, -166],
+      [-36, -90],
+      [-61, -106],
+      [-36, -22],
+      [-19, -71],
+      [26, -87],
+      [-47, -149],
+      [-16, -124],
+      [-52, -67],
+      [-30, -123],
+      [-8, -196],
+      [-53, -188],
+      [-70, -100],
+      [-51, -220],
+      [23, -145],
+      [45, -50],
+      [-93, -200],
+      [-32, -157]
+    ],
+    [
+      [18957, 9042],
+      [23, 42],
+      [96, 35],
+      [11, 108],
+      [-154, 91],
+      [-31, 67],
+      [-63, -29],
+      [-68, 69],
+      [-85, 14],
+      [6, 77],
+      [79, 76],
+      [7, 60],
+      [163, 72],
+      [22, 128],
+      [-43, 14],
+      [-49, 68]
+    ],
+    [
+      [21026, 15019],
+      [59, 67],
+      [4, 64],
+      [53, 0],
+      [42, 53],
+      [119, 19],
+      [4, 58],
+      [-34, 99],
+      [146, 107],
+      [17, 79],
+      [118, 0],
+      [77, 92],
+      [-16, 46],
+      [20, 114],
+      [39, 73],
+      [69, 39]
+    ],
+    [
+      [8514, 8553],
+      [40, -5],
+      [-27, -87],
+      [-86, -88],
+      [-112, 113],
+      [29, 43],
+      [156, 24]
+    ],
+    [
+      [10073, 8829],
+      [5, -49],
+      [-77, -41],
+      [2, 73],
+      [70, 17]
+    ],
+    [
+      [8865, 9688],
+      [25, -43],
+      [69, -2],
+      [-4, -235],
+      [-110, -5],
+      [26, 79],
+      [-16, 108],
+      [25, 33],
+      [-15, 65]
+    ],
+    [
+      [7721, 9781],
+      [53, -70],
+      [-86, -7],
+      [33, 77]
+    ],
+    [
+      [9461, 11490],
+      [74, -19],
+      [111, -136],
+      [-57, -20],
+      [-30, -85],
+      [92, -221],
+      [79, -11],
+      [60, -61],
+      [104, 83],
+      [117, -81],
+      [24, 51],
+      [59, -89],
+      [0, -80],
+      [88, -111],
+      [-104, -28],
+      [-14, 54],
+      [-193, 5],
+      [-74, -85],
+      [-39, 3],
+      [-108, -70],
+      [-56, -76],
+      [23, -103],
+      [-122, 23],
+      [-116, -27],
+      [14, 59],
+      [-44, 52],
+      [-68, -15],
+      [-40, 111],
+      [90, -70],
+      [48, 14],
+      [15, -78],
+      [173, 130],
+      [-3, 64],
+      [-73, 9],
+      [-104, -33],
+      [43, 111],
+      [-88, 64],
+      [-14, 80],
+      [122, -16],
+      [19, -62],
+      [96, 19],
+      [43, 56],
+      [-24, 99],
+      [14, 55],
+      [-50, 41],
+      [52, 29],
+      [-97, 61],
+      [20, 78],
+      [-74, 71],
+      [-31, 64],
+      [-68, -16],
+      [-31, -51],
+      [-57, 32],
+      [-77, -90],
+      [5, -34],
+      [-19, -25],
+      [-68, -25],
+      [-54, 7],
+      [-9, -140],
+      [19, -50],
+      [-73, -143],
+      [20, -100],
+      [-113, 26],
+      [-54, -35],
+      [-67, 9],
+      [25, 73],
+      [67, -32],
+      [62, 52],
+      [11, 48],
+      [-78, 92],
+      [62, 11],
+      [43, 73],
+      [-62, 44],
+      [19, 70],
+      [62, 108],
+      [128, -55],
+      [61, 9],
+      [55, 70],
+      [35, 40],
+      [8, 71],
+      [97, 16],
+      [94, 36]
+    ],
+    [
+      [9645, 12002],
+      [75, -80],
+      [-75, -12],
+      [-79, -45],
+      [-19, 46],
+      [98, 91]
+    ],
+    [
+      [24054, 20906],
+      [10, -67],
+      [-97, -87],
+      [-113, 51],
+      [-40, -49],
+      [-72, -27],
+      [24, -49],
+      [-4, -105],
+      [109, -94],
+      [-87, -84],
+      [-108, -25],
+      [-90, -2],
+      [-131, 99],
+      [-86, -4],
+      [-71, 28],
+      [-95, 72],
+      [-121, 69],
+      [-62, 129],
+      [-21, 91],
+      [-94, 45],
+      [-13, 31],
+      [84, 40],
+      [68, -4],
+      [54, 45],
+      [129, 24],
+      [89, 68],
+      [51, 5],
+      [66, 55]
+    ],
+    [
+      [23433, 21161],
+      [2, 2]
+    ],
+    [
+      [23435, 21163],
+      [2, 4]
+    ],
+    [
+      [23437, 21167],
+      [-16, -68],
+      [108, -6],
+      [164, -57],
+      [112, 46],
+      [60, -48],
+      [122, -59],
+      [91, 15],
+      [-24, -84]
+    ],
+    [
+      [18346, 18174],
+      [-135, 27],
+      [9, 30],
+      [-68, 124],
+      [-57, -47],
+      [-107, -1],
+      [-43, 33]
+    ],
+    [
+      [17945, 18340],
+      [123, 148],
+      [-7, 197],
+      [70, 208],
+      [86, 110],
+      [6, 49],
+      [56, 39]
+    ],
+    [
+      [18279, 19091],
+      [100, -31],
+      [29, -58],
+      [69, -43],
+      [296, -79],
+      [117, -95],
+      [32, -75],
+      [13, -102],
+      [31, -23],
+      [18, -95],
+      [-76, -33],
+      [-48, 93],
+      [-116, 58],
+      [-67, -20],
+      [17, -54],
+      [-58, -33],
+      [-64, 12],
+      [-16, -56],
+      [-89, -85],
+      [-51, 12],
+      [-52, -114],
+      [-18, -96]
+    ],
+    [
+      [22525, 21300],
+      [86, -54],
+      [-5, -73],
+      [-41, -68],
+      [84, -21],
+      [39, -130],
+      [55, -48],
+      [-56, -148],
+      [13, -24],
+      [118, -36],
+      [51, -45],
+      [35, -67],
+      [-28, -39],
+      [-18, -130],
+      [-34, -79],
+      [36, -52],
+      [186, -80],
+      [104, 14],
+      [-13, -43],
+      [-138, 9],
+      [-135, -46],
+      [-90, 20],
+      [-74, -37],
+      [-13, -49],
+      [30, -195],
+      [125, -41],
+      [-70, -48],
+      [-75, -17],
+      [-121, 39],
+      [-115, -12],
+      [-54, 104],
+      [-106, 51],
+      [-42, 60],
+      [22, 36],
+      [-96, 103],
+      [-67, 11],
+      [-58, -60],
+      [-50, -16],
+      [-59, 166],
+      [34, 47],
+      [82, 22],
+      [32, 50],
+      [6, 105],
+      [-29, 84],
+      [-89, 90],
+      [-53, 25],
+      [-97, 6],
+      [-59, 35],
+      [54, 157],
+      [114, 121],
+      [23, 3],
+      [107, 142],
+      [114, -21],
+      [11, 61],
+      [139, 65],
+      [80, 125],
+      [51, 6],
+      [54, -78]
+    ],
+    [
+      [23435, 21163],
+      [-2, -2]
+    ],
+    [
+      [24054, 20906],
+      [46, -20],
+      [75, 19],
+      [-13, -76],
+      [145, 30],
+      [152, -37],
+      [81, 12],
+      [130, -34],
+      [49, 30],
+      [109, -20],
+      [35, -85],
+      [-52, -51],
+      [-27, -67],
+      [6, -76],
+      [67, -39],
+      [40, -57],
+      [-18, -143],
+      [37, -56],
+      [83, -72],
+      [174, 35],
+      [168, -45],
+      [51, -56],
+      [-22, -57],
+      [-45, -8],
+      [-85, -66],
+      [-117, -48]
+    ],
+    [
+      [21927, 17924],
+      [-46, 102],
+      [8, 41],
+      [-157, 61],
+      [-99, 177],
+      [-78, 194],
+      [53, 57],
+      [119, 91],
+      [-74, 60],
+      [-13, 109],
+      [-42, 18],
+      [-94, 132],
+      [-85, 53],
+      [-116, -18],
+      [-47, -41],
+      [-133, 32],
+      [-35, 62],
+      [8, 60],
+      [-51, 63],
+      [56, 33],
+      [-58, 44],
+      [-23, 81],
+      [-65, 5],
+      [-72, 42],
+      [33, 60],
+      [-57, 46],
+      [110, 86],
+      [-73, 10],
+      [-49, 47],
+      [61, 33],
+      [27, 109],
+      [-13, 110],
+      [102, 31],
+      [74, -29],
+      [98, -7],
+      [87, 46],
+      [13, 75],
+      [67, -13],
+      [59, 37],
+      [-37, 109],
+      [96, 17],
+      [-92, 73],
+      [4, 55],
+      [-40, 31],
+      [31, 52],
+      [-74, 76],
+      [-62, 18],
+      [-144, -6],
+      [-39, 104],
+      [-67, 15],
+      [-92, 58],
+      [-144, 27],
+      [-30, 50],
+      [-103, 36],
+      [5, 50]
+    ],
+    [
+      [20634, 20788],
+      [52, 5],
+      [61, 42],
+      [129, -11],
+      [219, 53],
+      [72, 40],
+      [167, 64],
+      [-12, 28],
+      [24, 102],
+      [70, -59],
+      [109, 120],
+      [-96, 37],
+      [4, 43],
+      [91, 11],
+      [1, 50],
+      [79, 107],
+      [33, 8],
+      [110, 231],
+      [65, -5],
+      [60, 25],
+      [61, 96],
+      [187, 81],
+      [109, 17],
+      [49, 25],
+      [3, 46],
+      [109, -35],
+      [65, 2],
+      [59, 42],
+      [56, 3],
+      [127, -47],
+      [71, -66],
+      [100, -48],
+      [73, -90],
+      [-2, -125],
+      [107, -115],
+      [37, -61],
+      [110, -72],
+      [132, 41],
+      [9, -44],
+      [-53, -63],
+      [44, -76],
+      [67, 3],
+      [45, -26]
+    ],
+    [
+      [15197, 14913],
+      [81, 47],
+      [49, 64],
+      [93, 199],
+      [51, 56],
+      [83, 183],
+      [39, 40],
+      [46, 112],
+      [56, 30],
+      [56, 96],
+      [33, -3],
+      [88, 96],
+      [14, 63],
+      [188, 256],
+      [59, 55],
+      [151, 210]
+    ],
+    [
+      [16284, 16417],
+      [44, -15],
+      [73, -66],
+      [60, -118],
+      [98, -46],
+      [89, -117],
+      [56, -34],
+      [41, -69],
+      [101, -67],
+      [152, -39],
+      [185, -149],
+      [166, -67],
+      [143, -15],
+      [79, -55],
+      [105, -110],
+      [156, -9],
+      [116, 38],
+      [195, -17],
+      [47, 11],
+      [71, 62],
+      [-36, 207],
+      [122, 47],
+      [45, -25],
+      [94, 1],
+      [23, -27],
+      [80, -10],
+      [63, 15],
+      [60, -39],
+      [90, 14],
+      [64, -77],
+      [23, -56],
+      [75, -43],
+      [39, -48],
+      [65, -12],
+      [45, 23],
+      [21, 73],
+      [119, 78],
+      [54, 11],
+      [33, -42],
+      [103, 45],
+      [42, 42],
+      [85, -2],
+      [3, 36],
+      [124, 150],
+      [55, -10],
+      [123, 17],
+      [44, 85],
+      [57, 46],
+      [46, 4],
+      [45, 97],
+      [89, -6],
+      [18, -88],
+      [118, 11],
+      [22, 88],
+      [58, 54],
+      [2, 92],
+      [91, 32],
+      [8, 84]
+    ],
+    [
+      [20473, 16402],
+      [6, -56],
+      [66, -13],
+      [236, 34],
+      [78, 58]
+    ],
+    [
+      [16492, 8574],
+      [18, -45],
+      [-32, -59],
+      [-53, -33],
+      [-44, -85],
+      [23, -44],
+      [-26, -53],
+      [-128, -78],
+      [-32, -73],
+      [-70, -49],
+      [-84, -135],
+      [-2, -58],
+      [-92, -126],
+      [-33, -67],
+      [-96, -100],
+      [-160, -83],
+      [-43, -54],
+      [-131, -122],
+      [-138, -85],
+      [-29, -77],
+      [-115, 2],
+      [-36, -82],
+      [-14, -81],
+      [-53, 6],
+      [-80, -152],
+      [-30, -100],
+      [-78, -156],
+      [-45, -16],
+      [-70, 55],
+      [-142, -27],
+      [-34, -66],
+      [-85, -42],
+      [-37, -58],
+      [-140, -20],
+      [-36, 59],
+      [-74, 4],
+      [-205, 36],
+      [-43, -2],
+      [-25, -59],
+      [-90, 42],
+      [-27, -50],
+      [-89, 61],
+      [-64, 13],
+      [-10, 64],
+      [-76, -37],
+      [-184, 75],
+      [-114, -62]
+    ],
+    [
+      [13344, 6555],
+      [-12, 49],
+      [15, 89],
+      [-21, 107],
+      [-88, 163],
+      [-157, 158],
+      [-162, 126],
+      [-151, 89],
+      [-166, 74],
+      [-26, -7],
+      [-125, 161],
+      [-69, -10],
+      [-4, 56],
+      [48, 176],
+      [58, 108],
+      [53, 44],
+      [41, 187],
+      [34, 103],
+      [92, 190],
+      [29, 141],
+      [-8, 99],
+      [57, 77],
+      [27, 102],
+      [19, 217],
+      [95, 73],
+      [19, 77],
+      [-17, 62],
+      [46, 53]
+    ],
+    [
+      [12971, 9319],
+      [200, -131],
+      [1, -34],
+      [116, -39],
+      [82, -108],
+      [85, 55],
+      [83, -54],
+      [109, 27],
+      [113, 200],
+      [112, 23],
+      [79, 65],
+      [-42, 24],
+      [32, 50],
+      [71, -26],
+      [64, 13],
+      [-15, 75],
+      [60, 88],
+      [118, 0],
+      [1, 65],
+      [70, -12],
+      [76, 14],
+      [107, 100],
+      [207, 14],
+      [187, 58],
+      [92, -39],
+      [98, 45],
+      [235, -104],
+      [35, -63],
+      [76, 52],
+      [54, -50],
+      [-91, -49],
+      [-15, -55],
+      [143, -18],
+      [50, -59],
+      [-58, -56],
+      [27, -52],
+      [52, 5],
+      [121, -52],
+      [40, -51],
+      [-115, -103],
+      [23, -127],
+      [-28, -27],
+      [3, -91],
+      [46, -103],
+      [5, -64],
+      [-72, -57],
+      [51, -53],
+      [97, -20],
+      [87, -66],
+      [69, 22],
+      [87, -37],
+      [53, 57],
+      [68, 36],
+      [84, -45],
+      [122, 43],
+      [166, -31]
+    ],
+    [
+      [21421, 17394],
+      [-77, -34],
+      [-122, 47],
+      [-62, 60],
+      [-30, 92],
+      [45, 93],
+      [-52, 13],
+      [-35, 63],
+      [5, 147],
+      [-88, 26],
+      [-5, 56],
+      [-63, 79],
+      [-74, 43],
+      [-94, -32],
+      [-29, 17],
+      [53, 157],
+      [-62, 86],
+      [63, 140],
+      [-49, 55],
+      [-150, 48],
+      [-41, 45],
+      [-84, 46],
+      [18, 34],
+      [-88, 41],
+      [-2, 44],
+      [-61, 7],
+      [-109, -33],
+      [-30, 84],
+      [-62, -36],
+      [-73, 70],
+      [-88, 47],
+      [-45, 45],
+      [-111, 42],
+      [-43, 49],
+      [56, 86],
+      [-38, 137],
+      [-110, 11],
+      [-30, -26],
+      [-137, 27],
+      [-29, 98],
+      [-117, -28],
+      [-197, 67],
+      [-20, 65],
+      [17, 42],
+      [-36, 102],
+      [-110, 63],
+      [-127, -36],
+      [-84, 36],
+      [-110, -64],
+      [-44, 24]
+    ],
+    [
+      [18660, 19639],
+      [-8, 1]
+    ],
+    [
+      [18652, 19640],
+      [30, 54],
+      [78, 66],
+      [83, 128],
+      [-4, 68],
+      [38, 42],
+      [25, 83],
+      [57, 79],
+      [153, 148],
+      [133, 41],
+      [95, 43],
+      [22, 42],
+      [231, 89],
+      [211, 49],
+      [116, 60],
+      [63, 14],
+      [182, 91],
+      [114, 34],
+      [67, 3],
+      [133, 51],
+      [155, -37]
+    ],
+    [
+      [16284, 16417],
+      [62, 47],
+      [179, 192],
+      [126, 240],
+      [46, 44],
+      [57, 177],
+      [52, 82],
+      [56, 190],
+      [40, 64],
+      [93, 64],
+      [54, 65],
+      [50, 5],
+      [67, 63],
+      [11, 65],
+      [123, 125],
+      [80, 39],
+      [227, 37],
+      [218, 192],
+      [34, 124],
+      [86, 108]
+    ],
+    [
+      [18346, 18174],
+      [43, -34],
+      [41, 25],
+      [43, -45],
+      [51, 43],
+      [75, 6],
+      [1, -81],
+      [-59, -72],
+      [75, -32],
+      [0, -50],
+      [136, -134],
+      [72, -28],
+      [41, -61],
+      [190, -88],
+      [65, -76],
+      [55, 41],
+      [81, -56],
+      [49, -81],
+      [12, -70],
+      [-50, -56],
+      [-32, -114],
+      [-55, -47],
+      [74, -43],
+      [44, -52],
+      [-18, -85],
+      [-69, -34],
+      [33, -158],
+      [89, 18],
+      [80, -31],
+      [171, 88],
+      [87, -22],
+      [53, 34],
+      [37, -38],
+      [122, -22],
+      [58, 32],
+      [58, -14],
+      [179, 60],
+      [53, -47],
+      [-22, -59],
+      [65, -37],
+      [90, -91],
+      [14, -54],
+      [90, -44],
+      [23, -124],
+      [-18, -39]
+    ],
+    [
+      [18279, 19091],
+      [92, 80],
+      [48, 74],
+      [40, 108],
+      [41, 48],
+      [71, 165],
+      [81, 74]
+    ],
+    [
+      [15138, 10468],
+      [37, -15],
+      [62, -98],
+      [71, 40],
+      [64, -10],
+      [30, -86],
+      [82, -9],
+      [59, -102],
+      [-94, -142],
+      [-36, -3],
+      [-82, 62],
+      [-55, -2],
+      [-74, -57],
+      [-29, -51],
+      [-88, -34],
+      [-62, 83],
+      [-5, 55],
+      [-93, -5],
+      [-26, 29],
+      [-112, -14],
+      [33, 55],
+      [-38, 73],
+      [8, 54],
+      [60, 84],
+      [54, -31],
+      [30, 41],
+      [55, 7],
+      [50, 45],
+      [99, 31]
+    ],
+    [
+      [18491, 10154],
+      [-192, -82],
+      [-103, 11],
+      [-104, -49],
+      [-64, -101],
+      [-101, -37],
+      [-49, -36],
+      [-99, -29],
+      [-136, -287],
+      [-157, -50],
+      [-107, -93],
+      [-34, -68],
+      [-165, 13],
+      [2, -57],
+      [-70, -87],
+      [-102, -52],
+      [-11, -53],
+      [-121, 19],
+      [-51, -43],
+      [-6, -81],
+      [-66, -31],
+      [-145, 35],
+      [-92, 34],
+      [-36, -27],
+      [-54, 32],
+      [-4, -130],
+      [-31, -46],
+      [24, -77],
+      [42, -49],
+      [33, -159]
+    ],
+    [
+      [12971, 9319],
+      [66, 151],
+      [23, 137],
+      [172, 7],
+      [26, 57],
+      [-11, 74],
+      [-70, 0],
+      [1, 108],
+      [-27, 37],
+      [29, 85],
+      [-1, 81],
+      [-34, 35],
+      [4, 79],
+      [70, 78],
+      [14, 71],
+      [-160, -45],
+      [-59, 4],
+      [-34, 43],
+      [-3, 127],
+      [54, 33],
+      [100, -18],
+      [23, 22]
+    ],
+    [
+      [14986, 3697],
+      [-149, 34],
+      [-188, 112],
+      [-146, 118],
+      [-114, 76],
+      [-2, 48],
+      [-138, -90],
+      [-57, 115],
+      [26, 18],
+      [60, -72],
+      [33, 23],
+      [-94, 112],
+      [-56, 14],
+      [25, 67],
+      [-257, 285],
+      [12, 57],
+      [-62, 45],
+      [47, 41],
+      [-88, 172],
+      [8, 72],
+      [88, 86],
+      [-15, 148],
+      [-39, 123],
+      [-289, 583],
+      [-95, -15],
+      [-49, 64],
+      [102, 32],
+      [-46, 150],
+      [-43, 92],
+      [-15, 100],
+      [-101, 248]
+    ]
+  ],
+  "bbox": [
+    118.14555951500006, 21.895599675000085, 124.56017308900005,
+    26.38517819300006
+  ],
+  "transform": {
+    "scale": [0.0001520699249442887, 0.00015500547293191455],
+    "translate": [118.14555951500004, 21.895599675000085]
+  },
+  "objects": {
+    "map": {
+      "type": "GeometryCollection",
+      "geometries": [
+        {
+          "arcs": [[[0]], [[1]], [[2]], [[3]], [[4]], [[5]]],
+          "type": "MultiPolygon",
+          "properties": { "id": "09007", "name": "連江縣" }
+        },
+        {
+          "arcs": [[[6]], [[7]], [[8]]],
+          "type": "MultiPolygon",
+          "properties": { "id": "09020", "name": "金門縣" }
+        },
+        {
+          "arcs": [[[9]], [[10, 11, 12, 13, 14, 15]], [[16]]],
+          "type": "MultiPolygon",
+          "properties": { "id": "10002", "name": "宜蘭縣" }
+        },
+        {
+          "arcs": [[17, 18, 19, 20]],
+          "type": "Polygon",
+          "properties": { "id": "10007", "name": "彰化縣" }
+        },
+        {
+          "arcs": [[21, 22, 23, 24, -19, 25]],
+          "type": "Polygon",
+          "properties": { "id": "10008", "name": "南投縣" }
+        },
+        {
+          "arcs": [[[26]], [[27]], [[-25, 28, 29, -20]]],
+          "type": "MultiPolygon",
+          "properties": { "id": "10009", "name": "雲林縣" }
+        },
+        {
+          "arcs": [[[30]], [[31, 32, 33]]],
+          "type": "MultiPolygon",
+          "properties": { "id": "10013", "name": "屏東縣" }
+        },
+        {
+          "arcs": [[[34]], [[35]], [[36]], [[37, -32, 38, 39]]],
+          "type": "MultiPolygon",
+          "properties": { "id": "10014", "name": "臺東縣" }
+        },
+        {
+          "arcs": [[40, -40, 41, -22, 42, -12]],
+          "type": "Polygon",
+          "properties": { "id": "10015", "name": "花蓮縣" }
+        },
+        {
+          "arcs": [[[43]], [[44]], [[45]], [[46]], [[47]], [[48]]],
+          "type": "MultiPolygon",
+          "properties": { "id": "10016", "name": "澎湖縣" }
+        },
+        {
+          "arcs": [[49, 50, 51, 52]],
+          "type": "Polygon",
+          "properties": { "id": "10017", "name": "基隆市" }
+        },
+        {
+          "arcs": [[53, 54, 55]],
+          "type": "Polygon",
+          "properties": { "id": "10018", "name": "新竹市" }
+        },
+        {
+          "arcs": [[56]],
+          "type": "Polygon",
+          "properties": { "id": "63000", "name": "臺北市" }
+        },
+        {
+          "arcs": [[-52, 57, -50, 58, -16, 59, 60], [-57]],
+          "type": "Polygon",
+          "properties": { "id": "65000", "name": "新北市" }
+        },
+        {
+          "arcs": [[-43, -26, -18, 61, 62, 63, -13]],
+          "type": "Polygon",
+          "properties": { "id": "66000", "name": "臺中市" }
+        },
+        {
+          "arcs": [[64, 65, 66]],
+          "type": "Polygon",
+          "properties": { "id": "67000", "name": "臺南市" }
+        },
+        {
+          "arcs": [[-60, -15, 67, 68, 69]],
+          "type": "Polygon",
+          "properties": { "id": "68000", "name": "桃園市" }
+        },
+        {
+          "arcs": [[-63, 70, -54, 71]],
+          "type": "Polygon",
+          "properties": { "id": "10005", "name": "苗栗縣" }
+        },
+        {
+          "arcs": [[-56, 72, -69, -68, -14, -64, -72]],
+          "type": "Polygon",
+          "properties": { "id": "10004", "name": "新竹縣" }
+        },
+        {
+          "arcs": [[73]],
+          "type": "Polygon",
+          "properties": { "id": "10020", "name": "嘉義市" }
+        },
+        {
+          "arcs": [[-24, 74, -67, 75, -29], [-74]],
+          "type": "Polygon",
+          "properties": { "id": "10010", "name": "嘉義縣" }
+        },
+        {
+          "arcs": [[-65, -75, -23, -42, -39, -34, 76]],
+          "type": "Polygon",
+          "properties": { "id": "64000", "name": "高雄市" }
+        }
+      ]
+    }
+  }
+};
+</script>
+<script>
+/* ═══════════════════════════════════════
+   內嵌補助資料
+═══════════════════════════════════════ */
+</script>
+<script id="data-script">
+const EMBEDDED_DATA = {
+  "disability/assist/kaohsiung": {
+  "county": "高雄市",
+  "category": "disability",
+  "type": "assist",
+  "title": "輔具費用補助",
+  "intro": "身心障礙者需使用輔助器具（如輪椅、助聽器、義肢等），可申請輔具費用補助，依類別及所得核定補助金額。",
+  "conditions": [
+    "設籍高雄市",
+    "領有有效身心障礙證明",
+    "經醫師或治療師評估確有輔具需求",
+    "申請之輔具項目符合補助項目清單"
+  ],
+  "documents": [
+    "身心障礙證明",
+    "醫師開具之輔具評估或診斷書",
+    "輔具購買收據（含廠商統一編號）",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "由醫師或治療師評估輔具需求",
+    "向縣市輔具資源中心提出申請",
+    "審查資格與評估報告",
+    "核定補助金額",
+    "購買後憑收據申請退費"
+  ]
+},
+  "disability/care/kaohsiung": {
+  "county": "高雄市",
+  "category": "disability",
+  "type": "care",
+  "title": "日間照顧及住宿費用補助",
+  "intro": "身心障礙者入住機構或使用日間照顧服務時，依障礙類別、等級及所得，補助部分費用，減輕家庭負擔。",
+  "conditions": [
+    "設籍高雄市",
+    "領有有效身心障礙證明",
+    "使用合法立案照顧機構或日間照顧服務",
+    "低（中低）收入戶可獲較高補助比例"
+  ],
+  "documents": [
+    "身心障礙證明",
+    "機構收費收據或服務合約",
+    "戶籍謄本",
+    "低（中低）收入戶證明（如有）",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "選定合法立案照顧機構",
+    "入住後取得費用收據",
+    "向戶籍地社會局申請補助",
+    "審查資格及費用單據",
+    "核定後退費或定期補助"
+  ]
+},
+  "disability/home/kaohsiung": {
+  "county": "高雄市",
+  "category": "disability",
+  "type": "home",
+  "title": "無障礙住宅改善補助",
+  "intro": "領有身心障礙證明者，為改善居家無障礙環境（如安裝浴室扶手、坡道改裝、門寬加大等），可申請住宅修繕補助，低收入戶可獲較高補助比例。",
+  "conditions": [
+    "設籍高雄市",
+    "領有有效身心障礙證明",
+    "自有或租用住宅（租用需房東同意改善）",
+    "低（中低）收入戶可獲較高補助上限"
+  ],
+  "documents": [
+    "身心障礙證明",
+    "房屋所有權狀或租賃契約",
+    "改善工程估價單（合法廠商開具）",
+    "低（中低）收入戶證明（如有）",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "向戶籍地縣市政府社會局或建管單位提出申請",
+    "填寫申請書並附上估價單與相關證明",
+    "審查資格並派員勘查現場",
+    "核定補助金額",
+    "完工後憑收據核銷，補助款匯入帳戶"
+  ]
+},
+  "disability/living/kaohsiung": {
+  "county": "高雄市",
+  "category": "disability",
+  "type": "living",
+  "title": "身心障礙者生活補助",
+  "intro": "領有身心障礙證明且符合所得限制之障礙者，每月核發生活補助費，依障礙等級及家庭所得分級給付。",
+  "conditions": [
+    "設籍高雄市",
+    "領有有效身心障礙證明",
+    "家庭所得符合補助規定標準（依障礙等級分級）",
+    "未接受公費全額補助收容安置"
+  ],
+  "documents": [
+    "身心障礙證明正本",
+    "戶籍謄本（3個月內）",
+    "全戶稅務及財產申報同意書",
+    "銀行帳號存摺封面影本"
+  ],
+  "steps": [
+    "向戶籍地公所或社會局提出申請",
+    "填寫申請書並附上必要文件",
+    "資格審查（所得/財產調查）",
+    "核定後按月撥付"
+  ]
+},
+  "disability/vehicle/kaohsiung": {
+  "county": "高雄市",
+  "category": "disability",
+  "type": "vehicle",
+  "title": "專用車輛免稅及租屋補助",
+  "intro": "身心障礙者本人或同戶家屬所有之專用車輛，可申請免徵汽機車牌照稅；另符合資格之障礙者租屋時，可申請租屋補助，減輕生活費用負擔。",
+  "conditions": [
+    "設籍高雄市",
+    "領有有效身心障礙證明",
+    "車輛免稅：車輛登記本人或同戶家屬名下，且為身障者使用",
+    "租屋補助：租用合法住宅、無自有住宅且符合所得限制"
+  ],
+  "documents": [
+    "身心障礙證明",
+    "車輛行車執照（免稅申請用）",
+    "租賃契約及租金收據（租屋補助用）",
+    "戶籍謄本",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "免稅申請：向車輛所在地監理站或稅捐處申請牌照稅減免",
+    "租屋補助申請：向戶籍地公所或社會局提出",
+    "填寫申請書並附上證明文件",
+    "審查核定後減免稅額或補助款項撥入帳戶"
+  ]
+},
+  "elderly/care/kaohsiung": {
+  "county": "高雄市",
+  "category": "elderly",
+  "type": "care",
+  "title": "長期照顧服務補助",
+  "intro": "提供65歲以上失能老人居家服務、日間照顧及機構安置補助，依失能等級核定補助額度，以支持在地老化。",
+  "conditions": [
+    "年滿 65 歲以上（失智者50歲以上即可）",
+    "設籍高雄市",
+    "經長照管理中心評估具有失能情形（ADL/IADL功能缺損）",
+    "低收入或中低收入戶可獲更高補助比例"
+  ],
+  "documents": [
+    "失能評估表（由長照管理中心進行）",
+    "國民身分證",
+    "低收入或中低收入戶證明（如有）",
+    "銀行帳號存摺封面影本"
+  ],
+  "steps": [
+    "撥打1966長照專線申請評估",
+    "照管專員到府進行ADL/IADL失能評估",
+    "核定補助額度並安排照顧計畫",
+    "由特約服務單位提供服務",
+    "每季依實際使用量結算補助"
+  ]
+},
+  "elderly/chongyang/kaohsiung": {
+  "county": "高雄市",
+  "category": "elderly",
+  "type": "chongyang",
+  "title": "重陽敬老禮金",
+  "intro": "每年農曆九月九日重陽節，高雄市政府對年滿65歲以上之設籍長者發給重陽敬老禮金或禮品，表達社會對長者的敬重。",
+  "conditions": [
+    "年滿 65 歲以上（部分年齡層有加碼）",
+    "設籍高雄市",
+    "通常免申請，由戶政系統自動核查"
+  ],
+  "documents": [
+    "設籍高雄市戶口（通常免申請，由戶政自動核查）",
+    "部分情況需本人或家屬至公所領取或填具匯款帳號"
+  ],
+  "steps": [
+    "確認戶籍設在高雄市",
+    "留意高雄市政府公告的發放方式（直接匯款或現場領取）",
+    "依公告時間攜帶身分證至指定地點領取（或等待匯款）"
+  ]
+},
+  "elderly/denture/kaohsiung": {
+  "county": "高雄市",
+  "category": "elderly",
+  "type": "denture",
+  "title": "老人假牙補助",
+  "intro": "65歲以上之低收入戶、中低收入戶老人，因缺牙影響咀嚼功能，可申請假牙（活動假牙）製作費用補助，每3年可申請一次。",
+  "conditions": [
+    "年滿 65 歲以上",
+    "設籍高雄市",
+    "領有低收入戶或中低收入戶證明",
+    "缺牙影響咀嚼功能（需特約牙科診所確認）"
+  ],
+  "documents": [
+    "國民身分證",
+    "低（中低）收入戶證明",
+    "牙科診斷書或治療計畫書（特約醫療院所開立）",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "至特約牙科診所檢查並確認需製作假牙",
+    "取得診斷書後向戶籍地公所社會課或社會局申請",
+    "審查資格並核定補助金額",
+    "至特約牙科完成假牙製作",
+    "核定後補助款項退費至帳戶"
+  ]
+},
+  "elderly/living/kaohsiung": {
+  "county": "高雄市",
+  "category": "elderly",
+  "type": "living",
+  "title": "中低收入老人生活津貼",
+  "intro": "針對65歲以上、未接受公費收容安置、符合中低收入資格之老人，每月發給生活津貼，維持基本生活所需。",
+  "conditions": [
+    "年滿 65 歲以上",
+    "設籍高雄市",
+    "未接受政府公費收容安置",
+    "符合中低收入戶資格（家庭總收入及財產未超過規定標準）"
+  ],
+  "documents": [
+    "國民身分證或戶口名簿",
+    "近3個月存款餘額證明",
+    "財稅資料查詢授權書",
+    "診斷證明（如有重病）",
+    "戶籍謄本（3個月內）"
+  ],
+  "steps": [
+    "備妥申請文件",
+    "向戶籍所在地公所社會課提出申請",
+    "社工進行訪視與資格審查",
+    "審核通過後核定津貼金額",
+    "每月匯入指定帳戶"
+  ]
+},
+  "elderly/ltc20/kaohsiung": {
+  "county": "高雄市",
+  "category": "elderly",
+  "type": "ltc20",
+  "title": "長照 2.0 服務補助",
+  "intro": "長照2.0提供失能或失智之65歲以上長者居家服務、日間照顧、喘息服務等多元照顧選項，依失能等級核定補助額度，減輕家庭照顧壓力。",
+  "conditions": [
+    "年滿 65 歲以上（失智者50歲以上、身心障礙者55歲以上即可）",
+    "設籍高雄市",
+    "經長照管理中心評估具失能或失智情形",
+    "低（中低）收入戶可享較高補助比例"
+  ],
+  "documents": [
+    "國民身分證",
+    "失能評估結果（由長照管理中心安排）",
+    "低（中低）收入戶證明（如有）",
+    "銀行帳號存摺封面影本"
+  ],
+  "steps": [
+    "撥打1966長照專線或向長照管理中心提出申請",
+    "照管專員到宅進行功能評估（ADL/IADL）",
+    "核定服務項目及補助額度",
+    "由特約服務單位（照管員/日照中心）提供服務",
+    "每月依實際使用量結算，差額由個人自付"
+  ]
+},
+  "elderly/medical/kaohsiung": {
+  "county": "高雄市",
+  "category": "elderly",
+  "type": "medical",
+  "title": "老人醫療費用補助",
+  "intro": "65歲以上符合中低收入資格之老人，就醫時可申請自付醫療費用補助，減輕就醫負擔。",
+  "conditions": [
+    "年滿 65 歲以上",
+    "設籍高雄市",
+    "符合中低收入戶資格",
+    "就醫費用超出健保給付部分（自付額）"
+  ],
+  "documents": [
+    "醫療費用收據正本",
+    "存摺封面影本",
+    "中低收入戶證明",
+    "診斷書或出院病歷摘要"
+  ],
+  "steps": [
+    "就醫並保留醫療費用收據",
+    "備妥相關文件",
+    "向戶籍地公所或社會局申請",
+    "審核身分資格與費用憑證",
+    "核定後退費匯入帳戶"
+  ]
+},
+  "elderly/transport/kaohsiung": {
+  "county": "高雄市",
+  "category": "elderly",
+  "type": "transport",
+  "title": "敬老卡／交通點數補助",
+  "intro": "65歲以上長者可申請敬老卡（悠遊卡），享有搭乘大眾運輸（捷運、公車、台鐵）優惠，高雄市另提供計程車乘車補助點數，鼓勵長者出行及社會參與。",
+  "conditions": [
+    "年滿 65 歲以上",
+    "設籍高雄市",
+    "具有效身分證件"
+  ],
+  "documents": [
+    "國民身分證正本",
+    "一吋大頭照兩張",
+    "健保卡（部分窗口需核對）",
+    "申請表（向戶籍地公所或指定窗口取得）"
+  ],
+  "steps": [
+    "攜帶身分證及照片至戶籍地區公所或指定服務據點",
+    "填寫敬老卡申請表",
+    "現場核驗身分並製卡或核定點數",
+    "約1~2週後領取敬老卡或點數儲值通知",
+    "依高雄市規定至指定地點領取計程車補助點數"
+  ]
+},
+  "indigenous/edu/kaohsiung": {
+  "county": "高雄市",
+  "category": "indigenous",
+  "type": "edu",
+  "title": "原住民族獎助學金",
+  "intro": "具原住民族身分之在學學生，依就讀階段（高中、大專、研究所）及學業成績，核發不同額度之獎助學金。",
+  "conditions": [
+    "具原住民族身分",
+    "設籍高雄市或就讀高雄市學校",
+    "就讀高中職、大專院校或研究所",
+    "成績符合各階段規定標準"
+  ],
+  "documents": [
+    "原住民族身分證明（戶籍謄本）",
+    "在學證明或學生證",
+    "成績單（上學期）",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "每學期向就讀學校原民會窗口申請",
+    "填寫申請書並繳交文件",
+    "原住民族委員會審核",
+    "核定後匯入帳戶"
+  ]
+},
+  "indigenous/elderlyplus/kaohsiung": {
+  "county": "高雄市",
+  "category": "indigenous",
+  "type": "elderlyplus",
+  "title": "原住民 55 歲以上長者敬老福利加碼",
+  "intro": "具原住民族身分、年滿55歲以上之長者，可領取原住民族敬老福利生活津貼，比一般長者提早10年開始受益，由原住民族委員會每月發放。",
+  "conditions": [
+    "具原住民族身分",
+    "年滿 55 歲以上",
+    "設籍高雄市",
+    "未領取相同性質之其他政府津貼"
+  ],
+  "documents": [
+    "原住民族身分證明（戶籍謄本）",
+    "國民身分證",
+    "存摺封面影本",
+    "申請書（向戶籍地公所或原民會窗口索取）"
+  ],
+  "steps": [
+    "備妥文件至戶籍地鄉鎮市區公所原住民行政單位申請",
+    "填寫申請書及存摺帳號",
+    "公所核轉原住民族委員會審核",
+    "核定後按月匯入帳戶"
+  ]
+},
+  "indigenous/employ/kaohsiung": {
+  "county": "高雄市",
+  "category": "indigenous",
+  "type": "employ",
+  "title": "就業促進補助",
+  "intro": "提供原住民族失業者職業訓練、就業媒合及創業貸款補助，協助提升就業技能與機會。",
+  "conditions": [
+    "具原住民族身分",
+    "設籍或居住高雄市",
+    "具失業或求職身分",
+    "有意願接受職業訓練或就業媒合"
+  ],
+  "documents": [
+    "原住民族身分證明",
+    "失業（求職）登記證明",
+    "訓練計畫報名表（職訓類）",
+    "創業計畫書（創業類）"
+  ],
+  "steps": [
+    "向公立就業服務站辦理求職登記",
+    "由就業服務員評估需求",
+    "媒合職缺或推介訓練課程",
+    "完成訓練後核發補助或媒合就業"
+  ]
+},
+  "indigenous/newemergency/kaohsiung": {
+  "county": "高雄市",
+  "category": "indigenous",
+  "type": "newemergency",
+  "title": "新住民急難救助與特殊境遇補助",
+  "intro": "新住民（外籍或大陸配偶）遭遇家暴、失業、重病等急難狀況，可向移民署或社會局申請急難救助，另符合特殊境遇家庭條件者可申請各項生活、托育及就學補助。",
+  "conditions": [
+    "設籍或居住高雄市",
+    "持有效居留證或定居證",
+    "遭遇家暴、失業、重病等急難狀況",
+    "符合特殊境遇家庭認定條件"
+  ],
+  "documents": [
+    "居留證或定居證",
+    "急難事由證明（如驗傷單、診斷書、庇護令等）",
+    "戶籍謄本或結婚證明",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "聯繫移民署服務站、社會局或1955專線求助",
+    "填寫急難救助申請表並附上佐證",
+    "社工訪視評估",
+    "核定後發放救助金或轉介庇護資源",
+    "持續個案管理並連結長期服務"
+  ]
+},
+  "indigenous/newresident/kaohsiung": {
+  "county": "高雄市",
+  "category": "indigenous",
+  "type": "newresident",
+  "title": "新住民生活適應輔導",
+  "intro": "提供來自不同國籍之新住民（外籍配偶）生活適應課程、語言學習、法律諮詢及緊急生活補助，協助融入在地生活。",
+  "conditions": [
+    "設籍或居住高雄市",
+    "持有效居留證或定居證",
+    "結婚依法登記"
+  ],
+  "documents": [
+    "居留證或定居證",
+    "結婚證明（戶籍謄本）",
+    "最近一張大頭照"
+  ],
+  "steps": [
+    "向戶籍地移民署服務站或社會局報到",
+    "參加生活適應輔導課程",
+    "申請所需補助項目（語言班/緊急補助）",
+    "個案管理員持續追蹤協助"
+  ]
+},
+  "indigenous/skill/kaohsiung": {
+  "county": "高雄市",
+  "category": "indigenous",
+  "type": "skill",
+  "title": "新住民及其子女技能檢定獎勵金",
+  "intro": "新住民及其在台灣出生之子女，取得勞動部技術士證照（技能檢定）後，可向新住民發展基金申請獎勵金，鼓勵培力就業技能。",
+  "conditions": [
+    "新住民本人或其子女",
+    "設籍或居住高雄市",
+    "已取得勞動部核發之技術士證照",
+    "申請日距取得證照未超過規定期限"
+  ],
+  "documents": [
+    "居留證或定居證（新住民本人）或國民身分證（子女）",
+    "技術士證書正本及影本",
+    "申請表（向移民署或新住民培力點索取）",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "取得技術士證照後備妥文件",
+    "向移民署各縣市服務站或新住民培力點提出申請",
+    "填寫申請書並繳驗證書",
+    "審查資格",
+    "核定後匯入帳戶"
+  ]
+},
+  "lowincome/edu/kaohsiung": {
+  "county": "高雄市",
+  "category": "lowincome",
+  "type": "edu",
+  "title": "就學生活補助",
+  "intro": "低收入及中低收入戶家庭中，就讀高中職以上之學生，可申請就學生活補助，減輕就學費用負擔。",
+  "conditions": [
+    "設籍高雄市",
+    "家庭符合低收入戶或中低收入戶資格",
+    "就讀高中職、大專院校或研究所"
+  ],
+  "documents": [
+    "在學證明或學生證",
+    "家庭低（中低）收入戶證明",
+    "戶籍謄本",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "每學期開學後，向就讀學校申請",
+    "學校彙整名冊送縣市教育局",
+    "審核身分資格",
+    "核定後由學校發放或匯款"
+  ]
+},
+  "lowincome/emergency/kaohsiung": {
+  "county": "高雄市",
+  "category": "lowincome",
+  "type": "emergency",
+  "title": "急難救助金／馬上關懷",
+  "intro": "遭遇非預期事故（如失業、重病、意外、天災）導致生活急困的家庭，可申請一次性急難救助金（馬上關懷方案），迅速紓解燃眉之急。",
+  "conditions": [
+    "設籍高雄市",
+    "遭遇非預期急難事故（失業、重病、意外、天災等）",
+    "生活陷入急困無力維持",
+    "非因個人行為（如賭博、揮霍）造成"
+  ],
+  "documents": [
+    "申請人身分證",
+    "急難事由相關證明（如醫療收據、失業通知、災損證明等）",
+    "戶籍謄本",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "發生急難事由後儘速聯繫戶籍地公所社會課或社工",
+    "填寫急難救助申請書並附上佐證文件",
+    "社工緊急訪視評估",
+    "核定後48小時內發放救助金（馬上關懷案件）",
+    "後續視需要轉介其他資源"
+  ]
+},
+  "lowincome/living/kaohsiung": {
+  "county": "高雄市",
+  "category": "lowincome",
+  "type": "living",
+  "title": "低收入戶生活扶助",
+  "intro": "針對經主管機關認定為低收入戶之家庭，按人口數每月發給生活扶助費，確保基本生活需求。",
+  "conditions": [
+    "設籍高雄市",
+    "全戶家庭總收入及財產符合低收入戶認定標準",
+    "未接受公費收容安置",
+    "具工作能力者需配合接受就業輔導"
+  ],
+  "documents": [
+    "全戶戶籍謄本（3個月內）",
+    "全戶財稅及財產資料授權書",
+    "全戶金融帳戶存款餘額證明",
+    "租賃契約或自有住宅證明",
+    "在學子女學費收據（如有）"
+  ],
+  "steps": [
+    "向戶籍地鄉鎮市區公所提出申請",
+    "填寫申請書及財產申報表",
+    "社工進行家庭訪視",
+    "縣市社會局審查核定",
+    "每月定期匯入帳戶"
+  ]
+},
+  "lowincome/medical/kaohsiung": {
+  "county": "高雄市",
+  "category": "lowincome",
+  "type": "medical",
+  "title": "醫療補助",
+  "intro": "低收入戶及符合資格的中低收入戶成員，就醫費用超出健保給付部分，可向社政單位申請醫療補助。",
+  "conditions": [
+    "設籍高雄市",
+    "符合低收入戶或中低收入戶資格",
+    "就醫費用超出健保給付之自付部分"
+  ],
+  "documents": [
+    "醫療費用收據（含診斷書）",
+    "低（中低）收入戶證明",
+    "健保卡影本",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "就醫並保留收據及診斷書",
+    "向戶籍地公所社會課申請",
+    "填寫補助申請書",
+    "審查資格及費用憑證",
+    "核定後匯款至帳戶"
+  ]
+},
+  "lowincome/rent/kaohsiung": {
+  "county": "高雄市",
+  "category": "lowincome",
+  "type": "rent",
+  "title": "中央擴大租金補貼",
+  "intro": "行政院推動300億元擴大租金補貼方案，中低收入戶可享1.2~1.4倍加碼補貼，協助減輕租屋費用負擔，適用於租用民間房屋且無自有住宅之家庭。",
+  "conditions": [
+    "設籍高雄市",
+    "符合低收入戶或中低收入戶資格",
+    "租用民間合法房屋",
+    "全戶無自有住宅",
+    "非接受政府其他住宅補貼者"
+  ],
+  "documents": [
+    "租賃契約書（含房東身分證影本）",
+    "房屋租金支出憑證（匯款收據或收據）",
+    "戶籍謄本",
+    "低（中低）收入戶證明",
+    "全戶無自有住宅切結書",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "至內政部租金補貼資訊網（housingsubsidy.tw）線上申請或至戶籍地公所辦理",
+    "填寫申請書及上傳佐證文件",
+    "縣市政府審查資格及租約",
+    "核定補助金額（依縣市、家庭規模、所得分級）",
+    "每月或每季匯入帳戶"
+  ]
+},
+  "singleparent/childcare/kaohsiung": {
+  "county": "高雄市",
+  "category": "singleparent",
+  "type": "childcare",
+  "title": "兒童托育補助",
+  "intro": "單親家庭中，未滿6歲之子女就讀合法立案托育機構或居家保母，依所得核定不同比例之托育費用補助。",
+  "conditions": [
+    "設籍高雄市",
+    "單親家庭，獨自撫育未滿6歲子女",
+    "子女就讀合法立案托育機構或使用居家保母",
+    "家庭所得符合補助規定標準"
+  ],
+  "documents": [
+    "子女出生證明或戶籍謄本",
+    "托育機構或保母收費收據",
+    "單親家庭證明（戶籍謄本）",
+    "家庭所得相關文件",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "選定合法托育機構或居家保母",
+    "向鄉鎮市區公所社會課申請",
+    "填寫申請書並繳交文件",
+    "核定補助額度",
+    "每月結算後匯款補助"
+  ]
+},
+  "singleparent/childliving/kaohsiung": {
+  "county": "高雄市",
+  "category": "singleparent",
+  "type": "childliving",
+  "title": "特殊境遇家庭子女生活津貼",
+  "intro": "符合特殊境遇家庭資格（如離婚、喪偶、未婚生子、家暴受害等），其未滿18歲或仍在學之子女，可申請子女生活津貼，每名子女每月核發定額補助。",
+  "conditions": [
+    "設籍高雄市",
+    "符合特殊境遇家庭認定條件",
+    "撫育未滿18歲子女（在學者不限年齡）",
+    "家庭年所得低於規定標準"
+  ],
+  "documents": [
+    "戶籍謄本（含子女）",
+    "特殊境遇證明文件（離婚判決書、死亡證明、保護令等）",
+    "子女在學證明（若已滿18歲仍在學）",
+    "家庭所得申報資料",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "向戶籍地縣市政府社會局或公所提出申請",
+    "填寫申請書並附上佐證文件",
+    "社工審查家庭狀況與資格",
+    "縣市社會局核定津貼金額",
+    "每月定期匯款至指定帳戶"
+  ]
+},
+  "singleparent/edu/kaohsiung": {
+  "county": "高雄市",
+  "category": "singleparent",
+  "type": "edu",
+  "title": "子女就學補助",
+  "intro": "單親家庭子女就讀國小至大學階段，依家庭所得核發學費補助及課輔費補助，減輕就學經濟壓力。",
+  "conditions": [
+    "設籍高雄市",
+    "單親家庭子女",
+    "就讀國小至大學（含五專、技職）",
+    "家庭所得符合補助規定標準"
+  ],
+  "documents": [
+    "戶籍謄本",
+    "學費收費單據",
+    "在學證明",
+    "單親證明（戶籍謄本）",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "每學期開學後備妥文件",
+    "向就讀學校或戶籍地公所申請",
+    "填寫申請書並附上費用單據",
+    "審核後核定補助金額",
+    "匯入帳戶或由學校代為扣抵"
+  ]
+},
+  "singleparent/emergency/kaohsiung": {
+  "county": "高雄市",
+  "category": "singleparent",
+  "type": "emergency",
+  "title": "特殊境遇家庭緊急生活扶助",
+  "intro": "特殊境遇家庭（單親、家暴、離婚等）遭遇生活急困時，可申請一次性緊急生活扶助，協助渡過短期危機，補助期間最長6個月。",
+  "conditions": [
+    "設籍高雄市",
+    "符合特殊境遇家庭認定條件",
+    "遭遇急難事故導致生活急困",
+    "家庭年所得低於規定標準"
+  ],
+  "documents": [
+    "戶籍謄本",
+    "特殊境遇證明（離婚判決書、保護令、死亡證明等）",
+    "急困事由說明書",
+    "財稅資料授權書",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "向戶籍地縣市社會局或公所申請",
+    "填寫申請書並附上急困事由相關文件",
+    "社工緊急訪視評估",
+    "核定後發放扶助款",
+    "期滿後視情況轉介長期資源"
+  ]
+},
+  "singleparent/legal/kaohsiung": {
+  "county": "高雄市",
+  "category": "singleparent",
+  "type": "legal",
+  "title": "法律訴訟與律師費補助",
+  "intro": "特殊境遇單親家庭（如爭取子女監護權、追討扶養費、家暴離婚訴訟等），可申請法律訴訟費用及律師費補助，保障弱勢家庭的訴訟權益。",
+  "conditions": [
+    "設籍高雄市",
+    "符合特殊境遇家庭認定條件",
+    "因家庭事件（監護、扶養、家暴等）涉及訴訟",
+    "家庭年所得低於規定標準"
+  ],
+  "documents": [
+    "戶籍謄本",
+    "特殊境遇證明（保護令、受理案件證明等）",
+    "訴訟相關文件（起訴書、法院通知等）",
+    "律師費收據（事後核銷）或委任律師契約",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "向縣市法律扶助基金會或社會局提出申請",
+    "填寫申請書並說明案由",
+    "審查資格（所得與境遇條件）",
+    "核定後由基金會指派律師或補助律師費用",
+    "訴訟結束後憑收據辦理費用核銷"
+  ]
+},
+  "singleparent/living/kaohsiung": {
+  "county": "高雄市",
+  "category": "singleparent",
+  "type": "living",
+  "title": "單親家庭生活補助",
+  "intro": "因離婚、喪偶、未婚等原因獨自撫育未成年子女之單親家庭，符合所得限制者，每月核發生活補助費。",
+  "conditions": [
+    "設籍高雄市",
+    "獨自撫育未成年子女（未滿18歲）",
+    "因離婚、喪偶、未婚等原因形成單親",
+    "家庭所得符合補助規定標準"
+  ],
+  "documents": [
+    "戶籍謄本（含子女）",
+    "離婚判決書、死亡證明或其他佐證（視情況）",
+    "財稅資料授權書",
+    "存摺封面影本"
+  ],
+  "steps": [
+    "向戶籍地公所社會課提出申請",
+    "填寫申請書及家庭狀況說明",
+    "社工訪視審查",
+    "縣市社會局核定",
+    "每月定期匯款"
+  ]
+}
+};
+</script>
+
+<script>
+/* ═══════════════════════════════════════
+   TYPE_OPTIONS
+═══════════════════════════════════════ */
+const TYPE_OPTIONS = {
+  elderly: [
+    { value: "living",    label: "中低收入老人生活津貼" },
+    { value: "care",      label: "長期照顧服務補助" },
+    { value: "medical",   label: "老人醫療費用補助" },
+    { value: "transport", label: "敬老卡／交通點數補助" },
+    { value: "ltc20",     label: "長照 2.0 服務補助" },
+    { value: "denture",   label: "老人假牙補助" },
+    { value: "chongyang", label: "重陽敬老禮金" }
+  ],
+  lowincome: [
+    { value: "living",    label: "低收入戶生活扶助" },
+    { value: "edu",       label: "就學生活補助" },
+    { value: "medical",   label: "醫療補助" },
+    { value: "rent",      label: "中央擴大租金補貼" },
+    { value: "emergency", label: "急難救助金／馬上關懷" }
+  ],
+  disability: [
+    { value: "living",  label: "身心障礙者生活補助" },
+    { value: "care",    label: "日間照顧及住宿費用補助" },
+    { value: "assist",  label: "輔具費用補助" },
+    { value: "home",    label: "無障礙住宅改善補助" },
+    { value: "vehicle", label: "專用車輛免稅及租屋補助" }
+  ],
+  indigenous: [
+    { value: "edu",          label: "原住民族獎助學金" },
+    { value: "employ",       label: "就業促進補助" },
+    { value: "newresident",  label: "新住民生活適應輔導" },
+    { value: "newemergency", label: "新住民急難救助與特殊境遇補助" },
+    { value: "skill",        label: "新住民及其子女技能檢定獎勵金" },
+    { value: "elderlyplus",  label: "原住民 55 歲以上長者敬老福利加碼" }
+  ],
+  singleparent: [
+    { value: "living",      label: "單親家庭生活補助" },
+    { value: "childcare",   label: "兒童托育補助" },
+    { value: "edu",         label: "子女就學補助" },
+    { value: "childliving", label: "特殊境遇家庭子女生活津貼" },
+    { value: "emergency",   label: "特殊境遇家庭緊急生活扶助" },
+    { value: "legal",       label: "法律訴訟與律師費補助" }
+  ]
+};
+
+/* ═══════════════════════════════════════
+   COUNTY_MAP（全台 22 縣市）
+═══════════════════════════════════════ */
+const COUNTY_MAP = {
+  "09007": { cls: "c-lienchiang",   id: "lienchiang",  name: "連江縣" },
+  "09020": { cls: "c-kinmen",       id: "kinmen",       name: "金門縣" },
+  "10002": { cls: "c-yilan",        id: "yilan",        name: "宜蘭縣" },
+  "10004": { cls: "c-hsinchu",      id: "hsinchu",      name: "新竹縣" },
+  "10005": { cls: "c-miaoli",       id: "miaoli",       name: "苗栗縣" },
+  "10007": { cls: "c-changhua",     id: "changhua",     name: "彰化縣" },
+  "10008": { cls: "c-nantou",       id: "nantou",       name: "南投縣" },
+  "10009": { cls: "c-yunlin",       id: "yunlin",       name: "雲林縣" },
+  "10010": { cls: "c-chiayi",       id: "chiayi",       name: "嘉義縣" },
+  "10013": { cls: "c-pingtung",     id: "pingtung",     name: "屏東縣" },
+  "10014": { cls: "c-taitung",      id: "taitung",      name: "臺東縣" },
+  "10015": { cls: "c-hualien",      id: "hualien",      name: "花蓮縣" },
+  "10016": { cls: "c-penghu",       id: "penghu",       name: "澎湖縣" },
+  "10017": { cls: "c-keelung",      id: "keelung",      name: "基隆市" },
+  "10018": { cls: "c-hsinchu-city", id: "hsinchu-city", name: "新竹市" },
+  "10020": { cls: "c-chiayi-city",  id: "chiayi-city",  name: "嘉義市" },
+  "63000": { cls: "c-taipei",       id: "taipei",       name: "臺北市" },
+  "64000": { cls: "c-kaohsiung",    id: "kaohsiung",    name: "高雄市" },
+  "65000": { cls: "c-new-taipei",   id: "new-taipei",   name: "新北市" },
+  "66000": { cls: "c-taichung",     id: "taichung",     name: "臺中市" },
+  "67000": { cls: "c-tainan",       id: "tainan",       name: "臺南市" },
+  "68000": { cls: "c-taoyuan",      id: "taoyuan",      name: "桃園市" }
+};
+
+/* ═══════════════════════════════════════
+   ISLAND_OVERRIDES
+═══════════════════════════════════════ */
+const ISLAND_OVERRIDES = {
+  "penghu":     { tx: 20,  ty: -100, s: 2.2 },
+  "kinmen":     { tx: -20, ty: -430, s: 3.0 },
+  "lienchiang": { tx: 30,  ty: -480, s: 3.5 }
+};
+
+/* ═══════════════════════════════════════
+   狀態
+═══════════════════════════════════════ */
+let currentCat   = null;
+let currentType  = null;
+let selectedPath = null;
+let mapRendered  = false;
+
+/* ═══════════════════════════════════════
+   Step 1：選類別
+═══════════════════════════════════════ */
+function selectCat(btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+
+  const sel = document.getElementById('type-select');
+  sel.innerHTML = '<option value="">— 請選擇 —</option>';
+  TYPE_OPTIONS[currentCat].forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    sel.appendChild(o);
+  });
+
+  document.getElementById('step2-block').style.display = 'block';
+  document.getElementById('step34-block').style.display = 'none';
+  resetInfoPanel();
+}
+
+/* ═══════════════════════════════════════
+   Step 2：查詢 → 亮起全台
+═══════════════════════════════════════ */
+function handleQuery() {
+  const sel = document.getElementById('type-select');
+  currentType = sel.value;
+  if (!currentType) { alert('請先選擇補助項目'); return; }
+
+  // 全台 22 縣市全部亮起
+  document.querySelectorAll('.county-path').forEach(p => p.classList.add('active'));
+
+  if (selectedPath) { selectedPath.classList.remove('selected'); selectedPath = null; }
+  resetInfoPanel();
+
+  document.getElementById('step34-block').style.display = 'block';
+  document.getElementById('step34-block').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  if (!mapRendered) { renderMap(); mapRendered = true; }
+}
+
+/* ═══════════════════════════════════════
+   地圖渲染（from embedded TOPO_DATA）
+═══════════════════════════════════════ */
+function topoToSVGPaths(topo) {
+  const { scale, translate } = topo.transform;
+  const geoms = topo.objects.map.geometries;
+
+  const decodedArcs = topo.arcs.map(arc => {
+    let x = 0, y = 0;
+    return arc.map(([dx, dy]) => { x += dx; y += dy; return [x, y]; });
+  });
+
+  let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  decodedArcs.forEach(arc => arc.forEach(([qx, qy]) => {
+    const lon = qx * scale[0] + translate[0];
+    const lat = qy * scale[1] + translate[1];
+    if (lon < minLon) minLon = lon; if (lon > maxLon) maxLon = lon;
+    if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat;
+  }));
+
+  const SVG_W = 380, SVG_H = 560, PAD = 4, FILL = 1.6, SHIFT_X = 40;
+  const lonRange = maxLon - minLon, latRange = maxLat - minLat;
+  const mapScale = Math.min((SVG_W - PAD*2)*FILL/lonRange, (SVG_H - PAD*2)*FILL/latRange);
+  const offsetX = PAD + (SVG_W - PAD*2 - lonRange*mapScale)/2 + SHIFT_X;
+  const offsetY = PAD + (SVG_H - PAD*2 - latRange*mapScale)/2;
+
+  function project(qx, qy) {
+    const lon = qx*scale[0]+translate[0], lat = qy*scale[1]+translate[1];
+    return [(offsetX+(lon-minLon)*mapScale).toFixed(2), (offsetY+(maxLat-lat)*mapScale).toFixed(2)];
+  }
+  function arcsToDStr(rings) {
+    return rings.map(ring => {
+      let d = '';
+      ring.forEach(arcIdx => {
+        const rev = arcIdx < 0, arc = decodedArcs[rev ? ~arcIdx : arcIdx];
+        (rev ? [...arc].reverse() : arc).forEach((pt, i) => {
+          const [px, py] = project(pt[0], pt[1]);
+          d += (i === 0 ? (d ? 'L' : 'M') : 'L') + px + ',' + py;
+        });
+      });
+      return d + 'Z';
+    }).join('');
+  }
+  function ringPts(pa) { return pa[0].reduce((s,i) => s + decodedArcs[i<0?~i:i].length, 0); }
+
+  return geoms.map(geom => {
+    let d = '';
+    if (geom.type === 'Polygon') d = arcsToDStr(geom.arcs);
+    else if (geom.type === 'MultiPolygon') {
+      const best = geom.arcs.reduce((b, p) => ringPts(p) > ringPts(b) ? p : b);
+      d = arcsToDStr(best);
+    }
+    return { props: geom.properties, d };
+  });
+}
+
+function centroid(dStr) {
+  const pts = [], re = /[ML]([\d.]+),([\d.]+)/g; let m;
+  while ((m = re.exec(dStr)) !== null) pts.push([+m[1], +m[2]]);
+  if (!pts.length) return [0, 0];
+  return [pts.reduce((s,p)=>s+p[0],0)/pts.length, pts.reduce((s,p)=>s+p[1],0)/pts.length];
+}
+
+function renderMap() {
+  const paths = topoToSVGPaths(TOPO_DATA);
+  const group = document.getElementById('counties-group');
+  const lblGrp = document.getElementById('labels-group');
+  group.innerHTML = ''; lblGrp.innerHTML = '';
+
+  paths.forEach(({ props, d }) => {
+    if (!d) return;
+    const info = COUNTY_MAP[props.id];
+    const cls = info ? info.cls : 'c-default';
+    const countyId = info ? info.id : props.id;
+    const countyName = info ? info.name : (props.name || '');
+    const override = ISLAND_OVERRIDES[countyId];
+
+    const container = override ? (() => {
+      const [cx, cy] = centroid(d);
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('transform',
+        `translate(${(cx*(override.s-1)+override.tx).toFixed(1)},${(cy*(override.s-1)+override.ty).toFixed(1)}) scale(${override.s})`);
+      return g;
+    })() : null;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', `county-path ${cls} active`);
+    path.dataset.county = countyId;
+    path.dataset.name = countyName;
+
+    if (container) { container.appendChild(path); group.appendChild(container); }
+    else group.appendChild(path);
+
+    const [cx, cy] = centroid(d);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('class', 'county-label');
+    text.textContent = countyName.length > 2 ? countyName.slice(0, 2) : countyName;
+    if (override) {
+      const gTx = +(cx*(override.s-1)+override.tx).toFixed(1);
+      const gTy = +(cy*(override.s-1)+override.ty).toFixed(1);
+      text.setAttribute('x', (override.s*cx+gTx).toFixed(1));
+      text.setAttribute('y', (override.s*cy+gTy+3).toFixed(1));
+    } else { text.setAttribute('x', cx); text.setAttribute('y', cy+3); }
+    lblGrp.appendChild(text);
+  });
+
+  bindMapEvents();
+}
+
+function bindMapEvents() {
+  document.querySelectorAll('.county-path').forEach(path => {
+    path.addEventListener('click', async function () {
+      const countyId = this.dataset.county, countyName = this.dataset.name;
+      if (!countyId) return;
+      if (selectedPath) selectedPath.classList.remove('selected');
+      this.classList.add('selected'); selectedPath = this;
+
+      const data = getCountyData(countyId);
+      data ? renderSubsidyInfo(data, countyName) : showNotAvailable(countyName);
+    });
+  });
+}
+
+/* ═══════════════════════════════════════
+   各縣市差異資料表
+═══════════════════════════════════════ */
+const COUNTY_META = {
+  "taipei":      { name:"臺北市", metro:true,  island:false, east:false },
+  "new-taipei":  { name:"新北市", metro:true,  island:false, east:false },
+  "keelung":     { name:"基隆市", metro:false, island:false, east:false },
+  "taoyuan":     { name:"桃園市", metro:true,  island:false, east:false },
+  "hsinchu-city":{ name:"新竹市", metro:false, island:false, east:false },
+  "hsinchu":     { name:"新竹縣", metro:false, island:false, east:false },
+  "miaoli":      { name:"苗栗縣", metro:false, island:false, east:false },
+  "taichung":    { name:"臺中市", metro:true,  island:false, east:false },
+  "changhua":    { name:"彰化縣", metro:false, island:false, east:false },
+  "nantou":      { name:"南投縣", metro:false, island:false, east:false },
+  "yunlin":      { name:"雲林縣", metro:false, island:false, east:false },
+  "chiayi-city": { name:"嘉義市", metro:false, island:false, east:false },
+  "chiayi":      { name:"嘉義縣", metro:false, island:false, east:false },
+  "tainan":      { name:"臺南市", metro:true,  island:false, east:false },
+  "kaohsiung":   { name:"高雄市", metro:true,  island:false, east:false },
+  "pingtung":    { name:"屏東縣", metro:false, island:false, east:false },
+  "yilan":       { name:"宜蘭縣", metro:false, island:false, east:true  },
+  "hualien":     { name:"花蓮縣", metro:false, island:false, east:true  },
+  "taitung":     { name:"臺東縣", metro:false, island:false, east:true  },
+  "penghu":      { name:"澎湖縣", metro:false, island:true,  east:false },
+  "kinmen":      { name:"金門縣", metro:false, island:true,  east:false },
+  "lienchiang":  { name:"連江縣", metro:false, island:true,  east:false }
+};
+
+// 各縣市補助金額/特色差異（只列與通用版不同者）
+const COUNTY_VARIANTS = {
+  elderly_living_amt: {
+    "taipei":"每月 7,759 元（低收）/ 3,879 元（中低收），另有市府老人生活補助加碼",
+    "tainan":"每月 7,759 元（低收）/ 3,879 元（中低收），百歲人瑞另發每月 5,000 元禮金",
+    "kaohsiung":"每月 7,759 元（低收）/ 3,879 元（中低收），市府另有百歲人瑞特別禮金",
+    "penghu":"每月 7,759 元（低收）/ 3,879 元（中低收），離島加碼 10%",
+    "kinmen":"每月 7,759 元（低收）/ 3,879 元（中低收），離島加碼 10%",
+    "lienchiang":"每月 7,759 元（低收）/ 3,879 元（中低收），離島加碼 15%"
+  },
+  transport_note: {
+    "taipei":"臺北市敬老悠遊卡每月 250 趟公車/捷運免費，另計程車乘車券每月 500 元",
+    "new-taipei":"新北市敬老卡公車/捷運免費，計程車補助每次 100 元，每月最多 5 次",
+    "taichung":"臺中市敬老卡搭公車免費，BRT/公路客運享半價優惠",
+    "tainan":"臺南市敬老卡搭市區公車免費，計程車費每次補助 50 元",
+    "kaohsiung":"高雄市敬老卡搭捷運/公車免費，計程車補助每月最高 1,000 元",
+    "penghu":"澎湖縣敬老卡搭縣內公車免費，另有島際交通補助",
+    "kinmen":"金門縣敬老卡搭縣內公車免費，計程車每趟補助 50 元",
+    "lienchiang":"連江縣敬老卡搭縣內公車免費，另有離島交通補助"
+  },
+  chongyang_note: {
+    "taipei":"臺北市重陽禮金：75 歲以上每人 3,000 元，90 歲以上 5,000 元",
+    "new-taipei":"新北市重陽禮金：65 歲以上每人 600 元，80 歲以上 1,000 元",
+    "taichung":"臺中市重陽敬老：65 歲以上發放敬老禮品或禮金，金額依年度公告",
+    "tainan":"臺南市重陽禮金：65 歲以上每人 1,000 元，100 歲人瑞另有加碼",
+    "kaohsiung":"高雄市重陽敬老：65 歲以上發放禮金及敬老活動，金額依年度公告",
+    "penghu":"澎湖縣重陽禮金：65 歲以上每人 800 元，離島居民亦可申請",
+    "kinmen":"金門縣重陽禮金：65 歲以上每人 1,000 元，百歲人瑞另有加碼",
+    "lienchiang":"連江縣重陽禮金：65 歲以上每人 1,200 元（離島加碼）"
+  },
+  lowincome_living_note: {
+    "taipei":"臺北市低收入戶每人每月約 11,000～17,000 元（依等級），另有市府加碼",
+    "new-taipei":"新北市低收入戶每人每月約 10,000～15,000 元（依等級）",
+    "taichung":"臺中市低收入戶每人每月約 9,500～14,000 元（依等級）",
+    "tainan":"臺南市低收入戶每人每月約 9,000～13,500 元（依等級）",
+    "kaohsiung":"高雄市低收入戶每人每月約 9,000～14,000 元（依等級）",
+    "penghu":"澎湖縣低收入戶補助並提供離島生活加碼",
+    "kinmen":"金門縣低收入戶補助另有離島居民特別加碼",
+    "lienchiang":"連江縣低收入戶補助為全國最高加碼比例之離島縣"
+  },
+  rent_note: {
+    "taipei":"臺北市中低收入戶中央加碼 1.4 倍，另可申請市府住宅補貼，每月最高 12,000 元",
+    "new-taipei":"新北市中低收入戶中央加碼 1.4 倍，另有市府租金補貼每月最高 8,000 元",
+    "taichung":"臺中市中低收入戶中央加碼 1.4 倍，另有市府租金補貼每月最高 6,000 元",
+    "tainan":"臺南市中低收入戶中央加碼 1.3 倍，市府另有租金補貼方案",
+    "kaohsiung":"高雄市中低收入戶中央加碼 1.4 倍，另有市府租金補貼每月最高 5,000 元",
+    "penghu":"澎湖縣中低收入戶中央加碼 1.3 倍，離島居民另有特別補助方案"
+  },
+  dis_living_note: {
+    "taipei":"臺北市依障礙等級每月 2,500～7,500 元，另有市府加碼",
+    "new-taipei":"新北市依障礙等級每月 2,000～6,000 元",
+    "taichung":"臺中市依障礙等級每月 1,800～5,500 元",
+    "tainan":"臺南市依障礙等級每月 1,800～5,500 元",
+    "kaohsiung":"高雄市依障礙等級每月 2,000～6,000 元",
+    "penghu":"澎湖縣依障礙等級核發，離島加碼 10%",
+    "kinmen":"金門縣依障礙等級核發，離島加碼 10%",
+    "lienchiang":"連江縣依障礙等級核發，離島加碼 15%"
+  },
+  childcare_amt: {
+    "taipei":"臺北市未滿 2 歲每月最高 12,000 元，2～未滿 6 歲最高 8,000 元",
+    "new-taipei":"新北市未滿 2 歲每月最高 10,000 元，2～未滿 6 歲最高 6,000 元",
+    "taichung":"臺中市依所得分三級，最高每月 8,000 元",
+    "tainan":"臺南市最高每月 7,000 元，低收入戶全額補助",
+    "kaohsiung":"高雄市最高每月 8,500 元，單親家庭加碼 20%"
+  },
+  ind_edu_note: {
+    "taipei":"臺北市設籍原住民學生另可申請市府原民獎學金，高中職每年 12,000 元、大專每年 24,000 元",
+    "hualien":"花蓮縣原住民學生比例高，縣府另有部落大學及文化傳承學習補助",
+    "taitung":"臺東縣原住民學生縣府另提供生活費補助及原住民語言學習補助",
+    "pingtung":"屏東縣原住民學生縣府另有族群文化傳承獎學金"
+  }
+};
+
+/* ═══════════════════════════════════════
+   動態生成各縣市補助資料
+═══════════════════════════════════════ */
+function buildCountyData(countyId, cat, type) {
+  const meta = COUNTY_META[countyId];
+  if (!meta) return null;
+  const n = meta.name;
+  const isIsland = meta.island, isMetro = meta.metro, isEast = meta.east;
+  const V = COUNTY_VARIANTS;
+
+  const docs_basic = ["國民身分證或戶口名簿","近3個月存款餘額證明","財稅資料查詢授權書","診斷證明（如有重病）","戶籍謄本（3個月內）"];
+  const steps_apply_public = [`向${n}戶籍所在地公所社會課提出申請`,"社工進行訪視與資格審查","審核通過後核定津貼金額","每月匯入指定帳戶"];
+
+  if (cat === 'elderly') {
+    if (type === 'living') {
+      const amt = V.elderly_living_amt[countyId] || "每月 7,759 元（低收）/ 3,879 元（中低收）";
+      const extra = countyId==='hualien'||countyId==='taitung' ? `${n}原住民族長者另可申請原民加碼津貼` : `各縣市補助金額依當年度公告為準，請向${n}戶籍地公所確認`;
+      return { county:n, title:"中低收入老人生活津貼",
+        intro:`${n}針對65歲以上、未接受公費收容安置、符合中低收入資格之老人，每月發給生活津貼（${amt}）。`,
+        conditions:["年滿 65 歲以上",`設籍${n}`,"未接受政府公費收容安置","符合中低收入戶資格（家庭總收入及財產未超過規定標準）",extra],
+        documents:docs_basic,
+        steps:["備妥申請文件",...steps_apply_public] };
+    }
+    if (type === 'care') {
+      const note = isIsland ? "離島照顧人力較少，建議提早申請，等候時間約4～8週" : isMetro ? "六都照管中心服務量充足，評估等候約1～2週" : "縣市照管中心依人力安排，評估等候約2～4週";
+      return { county:n, title:"長期照顧服務補助",
+        intro:`${n}提供失能或失智之65歲以上長者居家服務、日間照顧及喘息服務，依失能等級核定補助額度。${note}。`,
+        conditions:["年滿 65 歲以上（原住民 50 歲以上即可）",`設籍${n}`,"經照管中心評估有失能或失智狀況","中低收入戶可提高補助比例"],
+        documents:["失能評估結果（由長照管理中心安排）","國民身分證","低（中低）收入戶證明（如有）","銀行帳號存摺封面影本"],
+        steps:["撥打1966長照專線申請評估","照管專員到宅進行ADL/IADL功能評估","核定服務項目及補助額度","由特約服務單位提供服務","每月依實際使用量結算，差額由個人自付"] };
+    }
+    if (type === 'medical') {
+      const note = isIsland ? `離島居民可申請就醫交通費加碼補助，請同步向${n}社會處洽詢` : "建議保留每次就醫收據以利申請";
+      return { county:n, title:"老人醫療費用補助",
+        intro:`${n} 65歲以上符合中低收入資格之老人，就醫自付費用超出健保給付部分可申請補助。${note}。`,
+        conditions:["年滿 65 歲以上",`設籍${n}`,"符合中低收入戶資格","就醫費用超出健保給付之自付部分"],
+        documents:["醫療費用收據正本","存摺封面影本","中低收入戶證明","診斷書或出院病歷摘要"],
+        steps:["就醫並保留收據","備妥相關文件",`向${n}戶籍地公所或社會局申請`,"審核身分資格與費用憑證","核定後退費匯入帳戶"] };
+    }
+    if (type === 'transport') {
+      const note = V.transport_note[countyId] || `${n}搭乘縣市公車享優惠，詳細方案請向戶籍地公所或交通局洽詢`;
+      return { county:n, title:"敬老卡／交通點數補助",
+        intro:note,
+        conditions:["年滿 65 歲以上",`設籍${n}`,"持有有效國民身分證"],
+        documents:["國民身分證正本","一吋大頭照兩張","健保卡（部分縣市需核對）","申請表（向戶籍地公所或指定窗口取得）"],
+        steps:[`攜帶身分證及照片至${n}戶籍地公所或指定服務據點`,"填寫敬老卡申請表","現場核驗身分並製卡或核定點數","約1～2週後領取敬老卡","依各縣市規定領取交通補助（如有）"] };
+    }
+    if (type === 'ltc20') {
+      const note = isIsland ? "離島長照資源較少，居家服務為主，日照中心有限，建議盡早申請" : isMetro ? "六都日照中心及居家服務資源豐富，等候期通常較短" : "縣市服務量依各鄉鎮照顧人力而異，偏鄉地區可能等候較久";
+      return { county:n, title:"長照 2.0 服務補助",
+        intro:`${n}長照2.0提供失能或失智長者居家服務、日間照顧、喘息服務，依失能等級核定補助額度。${note}。`,
+        conditions:["年滿 65 歲以上（原住民 50 歲以上、身心障礙 55 歲以上即可）",`設籍${n}`,"經照管中心評估失能或失智","中低收入戶可提高補助比例"],
+        documents:["國民身分證","失能評估結果（由長照管理中心安排）","低（中低）收入戶證明（如有）","銀行帳號存摺封面影本"],
+        steps:[`撥打1966長照專線或向${n}長照管理中心申請`,"照管專員到宅進行功能評估","核定服務項目及補助額度","由特約服務單位提供服務","每月依實際使用量結算，差額由個人自付"] };
+    }
+    if (type === 'denture') {
+      return { county:n, title:"老人假牙補助",
+        intro:`${n} 65歲以上低收入戶、中低收入戶老人可申請假牙製作費補助，每3年申請一次，補助上限依當年公告辦理。`,
+        conditions:["年滿 65 歲以上",`設籍${n}`,"符合低收入戶或中低收入戶資格","缺牙影響咀嚼功能（需牙科診斷書確認）"],
+        documents:["國民身分證","低（中低）收入戶證明","牙科診斷書或治療計畫書（特約醫療院所開立）","存摺封面影本"],
+        steps:["至特約牙科診所檢查並確認需製作假牙",`取得診斷書後向${n}戶籍地公所社會課或社會局申請`,"審查資格並核定補助金額","至特約牙科完成假牙製作","核定後補助款項退費至帳戶"] };
+    }
+    if (type === 'chongyang') {
+      const note = V.chongyang_note[countyId] || `${n}重陽敬老禮金：65歲以上長者，依當年縣市政府公告辦理，金額約600～2,000元`;
+      return { county:n, title:"重陽敬老禮金",
+        intro:note,
+        conditions:["年滿 65 歲以上（部分縣市為 70 歲起）",`設籍${n}`,"通常免申請，由戶政機關自動核查"],
+        documents:["設籍當地戶口（通常免申請）","部分縣市需本人或家屬至公所領取或填具匯款帳號"],
+        steps:[`確認戶籍設在${n}`,`留意${n}公告發放方式（直接匯款或現場領取）`,"依公告時間攜帶身分證至指定地點領取（或等待匯款）"] };
+    }
+  }
+
+  if (cat === 'lowincome') {
+    if (type === 'living') {
+      const note = V.lowincome_living_note[countyId] || `${n}低收入戶每人每月生活扶助費依家庭人口及等級核定，請向戶籍地公所查詢`;
+      return { county:n, title:"低收入戶生活扶助",
+        intro:note,
+        conditions:[`設籍${n}`,"全戶家庭總收入及財產符合低收入戶規定標準","未接受機構公費安置","主要負責人符合工作要求或有豁免事由"],
+        documents:["全戶戶籍謄本（3個月內）","全戶財稅及財產資料授權書","全戶金融帳戶存款餘額證明","租賃契約或自有住宅證明","在學子女學費收據（如有）"],
+        steps:[`向${n}戶籍地鄉鎮市區公所提出申請`,"填寫申請書及財產申報表","社工進行家庭訪視","縣市社會局審查核定","每月定期匯入帳戶"] };
+    }
+    if (type === 'edu') {
+      const amt = isIsland ? "高中職每學期最高10,000元（離島加碼），大專以上每學期最高18,000元" : isMetro ? "高中職每學期最高8,000元，大專以上每學期最高15,000元" : "高中職每學期最高6,000元，大專以上每學期最高12,000元";
+      return { county:n, title:"就學生活補助",
+        intro:`${n}低收入及中低收入戶家庭就讀高中職以上學生可申請就學生活補助（${amt}）。`,
+        conditions:[`設籍${n}`,"家庭屬低收入戶或中低收入戶","就讀高中職、大專院校或研究所","在學且未申領其他重複補助"],
+        documents:["在學證明或學生證","家庭低（中低）收入戶證明","戶籍謄本","存摺封面影本"],
+        steps:["每學期開學後，向就讀學校申請",`學校彙整名冊送${n}教育局`,"審核身分資格","核定後由學校發放或匯款"] };
+    }
+    if (type === 'medical') {
+      return { county:n, title:"醫療補助",
+        intro:`${n}低收入戶及符合資格的中低收入戶成員，就醫費用超出健保給付部分可申請醫療補助，減輕就醫負擔。`,
+        conditions:[`設籍${n}`,"符合低收入戶或中低收入戶資格","就醫費用超出健保給付之自付費用"],
+        documents:["醫療費用收據（含診斷書）","低（中低）收入戶證明","健保卡影本","存摺封面影本"],
+        steps:["就醫保留收據及診斷書",`向${n}戶籍地公所社會課申請`,"填寫補助申請書","審查資格及費用憑證","核定後匯款至帳戶"] };
+    }
+    if (type === 'rent') {
+      const note = V.rent_note[countyId] || `${n}中低收入戶享中央擴大租金補貼1.2～1.4倍加碼，依所得及家庭規模核定`;
+      return { county:n, title:"中央擴大租金補貼",
+        intro:note,
+        conditions:[`設籍${n}`,"符合低收入戶或中低收入戶資格","租用民間房屋且無自有住宅","租屋符合申請標準（坪數、金額等）"],
+        documents:["租賃契約書（含房東身分證影本）","房屋租金支出憑證（匯款收據或收據）","戶籍謄本","低（中低）收入戶證明","全戶無自有住宅切結書","存摺封面影本"],
+        steps:["至內政部租金補貼資訊網線上申請或至戶籍地公所辦理","填寫申請書及上傳佐證文件","縣市政府審查資格及租約","核定補助金額","每月或每季匯入帳戶"] };
+    }
+    if (type === 'emergency') {
+      return { county:n, title:"急難救助金／馬上關懷",
+        intro:`${n}遭遇非預期事故（失業、重病、意外、天災）導致生活急困的家庭，可申請一次性急難救助金，通常48小時內核發。`,
+        conditions:[`設籍${n}`,"遭遇非預期急難事由（失業、重病、意外、天災等）","生活陷入急困且無法自行解決","不限收入資格，但以弱勢優先"],
+        documents:["申請人身分證","急難事由相關證明（醫療收據、失業通知、災損證明等）","戶籍謄本","存摺封面影本"],
+        steps:[`發生急難後儘速聯繫${n}戶籍地公所社會課或社工`,"填寫急難救助申請書並附上佐證文件","社工緊急訪視評估","核定後48小時內發放救助金","後續視需要轉介其他資源"] };
+    }
+  }
+
+  if (cat === 'disability') {
+    if (type === 'living') {
+      const note = V.dis_living_note[countyId] || `${n}依障礙等級及家庭所得核定補助金額，請向戶籍地公所查詢`;
+      return { county:n, title:"身心障礙者生活補助",
+        intro:note,
+        conditions:[`設籍${n}`,"領有有效身心障礙證明","家庭所得符合補助標準","障礙等級為輕度以上"],
+        documents:["身心障礙證明正本","戶籍謄本（3個月內）","全戶稅務及財產申報同意書","銀行帳號存摺封面影本"],
+        steps:[`向${n}戶籍地公所或社會局提出申請`,"填寫申請書並附上必要文件","資格審查（所得/財產調查）","核定後按月撥付"] };
+    }
+    if (type === 'care') {
+      return { county:n, title:"日間照顧及住宿費用補助",
+        intro:`${n}身心障礙者入住機構或使用日間照顧服務時，依障礙類別、等級及所得補助部分費用，減輕家庭負擔。`,
+        conditions:[`設籍${n}`,"領有有效身心障礙證明","使用合法立案照顧機構或日間照顧服務","家庭所得符合補助標準"],
+        documents:["身心障礙證明","機構收費收據或服務合約","戶籍謄本","低（中低）收入戶證明（如有）","存摺封面影本"],
+        steps:["選定合法立案照顧機構","入住後取得費用收據",`向${n}戶籍地社會局申請補助`,"審查資格及費用單據","核定後退費或定期補助"] };
+    }
+    if (type === 'assist') {
+      return { county:n, title:"輔具費用補助",
+        intro:`${n}身心障礙者需使用輔助器具（輪椅、助聽器、義肢等），可申請輔具費用補助，依類別及所得核定補助金額。`,
+        conditions:[`設籍${n}`,"領有有效身心障礙證明","經醫師或治療師評估確有輔具需求","申請輔具項目符合補助清單"],
+        documents:["身心障礙證明","醫師開具之輔具評估或診斷書","輔具購買收據（含廠商統一編號）","存摺封面影本"],
+        steps:["由醫師或治療師評估輔具需求",`向${n}輔具資源中心提出申請`,"審查資格與評估報告","核定補助金額","購買後憑收據申請退費"] };
+    }
+    if (type === 'home') {
+      const amt = isMetro ? "六都補助上限通常較高，最高可達 100,000 元" : isIsland ? "離島縣市補助上限 50,000 元，另有離島交通費補助" : "補助上限依縣市公告，通常為 40,000～80,000 元";
+      return { county:n, title:"無障礙住宅改善補助",
+        intro:`${n}身心障礙者可申請居家無障礙改善補助（浴室扶手、坡道改裝等），${amt}。`,
+        conditions:[`設籍${n}`,"領有有效身心障礙證明","自有住宅或有房東同意改善之租屋","低收入戶可獲最高補助比例"],
+        documents:["身心障礙證明","房屋所有權狀或租賃契約","改善工程估價單（合法廠商開具）","低（中低）收入戶證明（如有）","存摺封面影本"],
+        steps:[`向${n}縣市政府社會局或建管單位提出申請`,"填寫申請書並附上估價單","審查資格並派員勘查現場","核定補助金額","完工後憑收據核銷，補助款匯入帳戶"] };
+    }
+    if (type === 'vehicle') {
+      return { county:n, title:"專用車輛免稅及租屋補助",
+        intro:`${n}身心障礙者本人或同戶家屬之專用車輛可申請免徵汽機車牌照稅；另符合資格之障礙者租屋時可申請租屋補助。`,
+        conditions:[`設籍${n}`,"領有有效身心障礙證明","車輛為本人或同戶家屬所有且供其使用（免稅類）","租用民間房屋且無自有住宅（租屋補助類）"],
+        documents:["身心障礙證明","車輛行車執照（免稅類）","租賃契約及租金收據（租屋補助類）","戶籍謄本","存摺封面影本"],
+        steps:["免稅申請：向車輛所在地監理站或稅捐處申請牌照稅減免",`租屋補助申請：向${n}戶籍地公所或社會局提出`,"填寫申請書並附上證明文件","審查核定後減免稅額或補助款項撥入帳戶"] };
+    }
+  }
+
+  if (cat === 'indigenous') {
+    if (type === 'edu') {
+      const note = V.ind_edu_note[countyId] || `${n}原住民族學生依就讀階段（高中、大專、研究所）及學業成績核發獎助學金`;
+      return { county:n, title:"原住民族獎助學金",
+        intro:note,
+        conditions:["具原住民族身分",`設籍${n}或就讀${n}學校`,"就讀高中職以上學校","學業成績符合標準"],
+        documents:["原住民族身分證明（戶籍謄本）","在學證明或學生證","成績單（上學期）","存摺封面影本"],
+        steps:["每學期向就讀學校原民會窗口申請","填寫申請書並繳交文件","原住民族委員會審核","核定後匯入帳戶"] };
+    }
+    if (type === 'employ') {
+      return { county:n, title:"就業促進補助",
+        intro:`${n}原住民族失業者可申請職業訓練、就業媒合及創業貸款補助，協助提升就業技能與機會。`,
+        conditions:["具原住民族身分",`設籍${n}或在${n}求職`,"失業或需轉職","有參訓或創業意願"],
+        documents:["原住民族身分證明","失業（求職）登記證明","訓練計畫報名表（職訓類）","創業計畫書（創業類）"],
+        steps:[`向${n}公立就業服務站辦理求職登記`,"由就業服務員評估需求","媒合職缺或推介訓練課程","完成訓練後核發補助或媒合就業"] };
+    }
+    if (type === 'newresident') {
+      return { county:n, title:"新住民生活適應輔導",
+        intro:`${n}提供外籍配偶（新住民）生活適應課程、語言學習、法律諮詢及緊急生活補助，協助融入在地生活。`,
+        conditions:[`設籍${n}之外籍或大陸配偶（新住民）`,"持有居留證或定居證","有生活適應需求"],
+        documents:["居留證或定居證","結婚證明（戶籍謄本）","最近一張大頭照"],
+        steps:[`向${n}戶籍地移民署服務站或社會局報到`,"參加生活適應輔導課程","申請所需補助項目（語言班/緊急補助）","個案管理員持續追蹤協助"] };
+    }
+    if (type === 'newemergency') {
+      return { county:n, title:"新住民急難救助與特殊境遇補助",
+        intro:`${n}新住民遭遇家暴、失業、重病等急難狀況，可向移民署或社會局申請急難救助及特殊境遇補助。`,
+        conditions:[`設籍${n}之新住民（外籍或大陸配偶）`,"遭遇家暴、失業、重病等急難狀況","持有居留證或定居證","符合特殊境遇家庭條件者可申請相關補助"],
+        documents:["居留證或定居證","急難事由證明（驗傷單、診斷書、庇護令等）","戶籍謄本或結婚證明","存摺封面影本"],
+        steps:[`聯繫${n}移民署服務站、社會局或1955專線求助`,"填寫急難救助申請表並附上佐證","社工訪視評估","核定後發放救助金或轉介庇護資源","持續個案管理並連結長期服務"] };
+    }
+    if (type === 'skill') {
+      return { county:n, title:"新住民及其子女技能檢定獎勵金",
+        intro:`${n}新住民及其在台灣出生之子女取得勞動部技術士證照後，可向新住民發展基金申請獎勵金。`,
+        conditions:[`設籍${n}之新住民本人或其在台子女`,"取得勞動部技術士證照（技能檢定）","申請獎勵金額符合規定標準"],
+        documents:["居留證或定居證（新住民本人）或國民身分證（子女）","技術士證書正本及影本","申請表（向移民署或新住民培力點索取）","存摺封面影本"],
+        steps:["取得技術士證照後備妥文件",`向${n}移民署各縣市服務站或新住民培力點提出申請`,"填寫申請書並繳驗證書","審查資格","核定後匯入帳戶"] };
+    }
+    if (type === 'elderlyplus') {
+      const note = isEast ? `${n}原住民族長者人口眾多，原民委員會另有族群文化傳承活動補貼` : isIsland ? `${n}原住民族長者另有離島加碼及島際交通補助` : `${n}原住民族身分年滿55歲以上長者每月可領原住民族敬老福利生活津貼`;
+      return { county:n, title:"原住民 55 歲以上長者敬老福利加碼",
+        intro:note,
+        conditions:["具原住民族身分","年滿 55 歲以上",`設籍${n}`,"未同時領取其他老人津貼（避免重複）"],
+        documents:["原住民族身分證明（戶籍謄本）","國民身分證","存摺封面影本","申請書（向戶籍地公所或原民會窗口索取）"],
+        steps:[`備妥文件至${n}戶籍地鄉鎮市區公所原住民行政單位申請`,"填寫申請書及存摺帳號","公所核轉原住民族委員會審核","核定後按月匯入帳戶"] };
+    }
+  }
+
+  if (cat === 'singleparent') {
+    if (type === 'living') {
+      const amt = isIsland ? "離島縣市每月補助另有加碼，約4,000～9,000元" : isMetro ? "六都每月補助約3,000～8,000元，依所得分級核定" : "每月補助約2,500～6,000元，依家庭所得分級核定";
+      return { county:n, title:"單親家庭生活補助",
+        intro:`${n}因離婚、喪偶、未婚等原因獨自撫育未成年子女之單親家庭，符合所得限制者每月核發生活補助（${amt}）。`,
+        conditions:[`設籍${n}`,"獨自撫育未滿18歲子女","離婚、喪偶或未婚等單親事由","家庭所得符合補助標準"],
+        documents:["戶籍謄本（含子女）","離婚判決書、死亡證明或其他佐證（視情況）","財稅資料授權書","存摺封面影本"],
+        steps:[`向${n}戶籍地公所社會課提出申請`,"填寫申請書及家庭狀況說明","社工訪視審查","縣市社會局核定","每月定期匯款"] };
+    }
+    if (type === 'childcare') {
+      const amt = V.childcare_amt[countyId] || `${n}托育補助依所得及機構類型核定，請向${n}社會局確認最新標準`;
+      return { county:n, title:"兒童托育補助",
+        intro:`${n}單親家庭未滿6歲子女就讀合法托育機構或使用居家保母，可申請托育補助（${amt}）。`,
+        conditions:[`設籍${n}`,"單親家庭身分","子女未滿 6 歲","子女就讀合法立案托育機構或使用居家保母"],
+        documents:["子女出生證明或戶籍謄本","托育機構或保母收費收據","單親家庭證明（戶籍謄本）","家庭所得相關文件","存摺封面影本"],
+        steps:["選定合法托育機構或居家保母",`向${n}鄉鎮市區公所社會課申請`,"填寫申請書並繳交文件","核定補助額度","每月結算後匯款補助"] };
+    }
+    if (type === 'edu') {
+      const extra = isMetro ? "六都另有子女課輔費補助及午餐費減免方案" : "縣市另視財政狀況提供子女課輔費或午餐費補助";
+      return { county:n, title:"子女就學補助",
+        intro:`${n}單親家庭子女就讀國小至大學，依家庭所得核發學費及課輔費補助。${extra}。`,
+        conditions:[`設籍${n}`,"單親家庭身分","子女就讀國小至大學（含研究所）","家庭所得符合補助標準"],
+        documents:["戶籍謄本","學費收費單據","在學證明","單親證明（戶籍謄本）","存摺封面影本"],
+        steps:["每學期開學後備妥文件",`向${n}就讀學校或戶籍地公所申請`,"填寫申請書並附上費用單據","審核後核定補助金額","匯入帳戶或由學校代為扣抵"] };
+    }
+    if (type === 'childliving') {
+      return { county:n, title:"特殊境遇家庭子女生活津貼",
+        intro:`${n}符合特殊境遇家庭資格（離婚、喪偶、未婚生子、家暴受害等），未滿18歲或仍在學子女可申請子女生活津貼，每名子女每月核發定額補助。`,
+        conditions:[`設籍${n}`,"符合特殊境遇家庭資格","子女未滿18歲或仍在學","家庭年所得低於規定標準"],
+        documents:["戶籍謄本（含子女）","特殊境遇證明文件（離婚判決書、死亡證明、保護令等）","子女在學證明（若已滿18歲仍在學）","家庭所得申報資料","存摺封面影本"],
+        steps:[`向${n}縣市政府社會局或公所提出申請`,"填寫申請書並附上佐證文件","社工審查家庭狀況與資格","縣市社會局核定津貼金額","每月定期匯款至指定帳戶"] };
+    }
+    if (type === 'emergency') {
+      return { county:n, title:"特殊境遇家庭緊急生活扶助",
+        intro:`${n}特殊境遇家庭（單親、家暴、離婚等）遭遇生活急困時，可申請一次性緊急生活扶助，補助期間最長6個月。`,
+        conditions:[`設籍${n}`,"符合特殊境遇家庭條件","遭遇生活急困事由","家庭所得低於規定標準"],
+        documents:["戶籍謄本","特殊境遇證明（離婚判決書、保護令、死亡證明等）","急困事由說明書","財稅資料授權書","存摺封面影本"],
+        steps:[`向${n}縣市社會局或公所申請`,"填寫申請書並附上急困事由相關文件","社工緊急訪視評估","核定後發放扶助款","期滿後視情況轉介長期資源"] };
+    }
+    if (type === 'legal') {
+      return { county:n, title:"法律訴訟與律師費補助",
+        intro:`${n}特殊境遇單親家庭（爭取子女監護權、追討扶養費、家暴離婚訴訟等），可申請法律訴訟費用及律師費補助。`,
+        conditions:[`設籍${n}`,"符合特殊境遇家庭條件","涉及家庭訴訟（監護、扶養、家暴等）","家庭所得低於規定標準"],
+        documents:["戶籍謄本","特殊境遇證明（保護令、受理案件證明等）","訴訟相關文件（起訴書、法院通知等）","律師費收據（事後核銷）或委任律師契約","存摺封面影本"],
+        steps:[`向${n}縣市法律扶助基金會或社會局提出申請`,"填寫申請書並說明案由","審查資格（所得與境遇條件）","核定後由基金會指派律師或補助律師費用","訴訟結束後憑收據辦理費用核銷"] };
+    }
+  }
+
+  return null;
+}
+
+/* ═══════════════════════════════════════
+   資料查詢（優先動態生成，其次 EMBEDDED_DATA）
+═══════════════════════════════════════ */
+function getCountyData(countyId) {
+  // 1. 動態生成（全台 22 縣市各自內容）
+  const built = buildCountyData(countyId, currentCat, currentType);
+  if (built) return { ...built, isLocal: true };
+  // 2. fallback：EMBEDDED_DATA 高雄版
+  const national = `${currentCat}/${currentType}/kaohsiung`;
+  if (EMBEDDED_DATA[national]) return { ...EMBEDDED_DATA[national], isLocal: false };
+  return null;
+}
+
+/* ═══════════════════════════════════════
+   渲染補助資訊
+═══════════════════════════════════════ */
+function renderSubsidyInfo(data, countyName) {
+  document.getElementById('info-placeholder').style.display = 'none';
+  document.getElementById('not-available').classList.remove('visible');
+
+  const displayName = data.isLocal ? data.county : countyName;
+  document.getElementById('county-title').textContent = `${displayName}　${data.title}`;
+  const container = document.getElementById('subsidies-container');
+  container.innerHTML = '';
+
+  const card = document.createElement('div');
+  card.className = 'subsidy-card';
+
+  // 全國通用標籤
+  if (!data.isLocal) {
+    const badge = document.createElement('span');
+    badge.className = 'national-badge';
+    badge.textContent = '📌 全國通用資訊（尚無該縣市專屬資料）';
+    card.appendChild(badge);
+  }
+
+  // 簡介
+  if (data.intro) {
+    const p = document.createElement('p');
+    p.className = 'section-intro';
+    p.textContent = data.intro;
+    card.appendChild(p);
+  }
+
+  // 申請條件
+  if (data.conditions && data.conditions.length) {
+    const lbl = document.createElement('div'); lbl.className = 'section-label'; lbl.dataset.section = 'section_conditions'; lbl.textContent = getSectionLabel('section_conditions'); card.appendChild(lbl);
+    const ul = document.createElement('ul'); ul.className = 'conditions-list';
+    data.conditions.forEach(c => { const li = document.createElement('li'); li.textContent = c; ul.appendChild(li); });
+    card.appendChild(ul);
+  }
+
+  // 所需文件 Checklist
+  if (data.documents && data.documents.length) {
+    const hdr = document.createElement('div'); hdr.className = 'checklist-header';
+    const lbl = document.createElement('div'); lbl.className = 'section-label'; lbl.dataset.section = 'section_docs'; lbl.textContent = getSectionLabel('section_docs');
+    const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.textContent = getCopyBtnText();
+    const ul2 = document.createElement('ul'); ul2.className = 'checklist';
+    data.documents.forEach(doc => {
+      const li = document.createElement('li');
+      const cb = document.createElement('input'); cb.type = 'checkbox';
+      const span = document.createElement('span'); span.textContent = doc;
+      li.appendChild(cb); li.appendChild(span);
+      li.addEventListener('click', e => { if (e.target !== cb) cb.checked = !cb.checked; li.classList.toggle('checked', cb.checked); });
+      ul2.appendChild(li);
+    });
+    btn.addEventListener('click', () => {
+      const lines = [...ul2.querySelectorAll('li')].map(li => (li.querySelector('input').checked ? '✅ ' : '☐ ') + li.querySelector('span').textContent);
+      navigator.clipboard.writeText(lines.join('\n')).then(() => {
+        btn.textContent = getCopyDoneText(); btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = getCopyBtnText(); btn.classList.remove('copied'); }, 2000);
+      });
+    });
+    hdr.appendChild(lbl); hdr.appendChild(btn);
+    card.appendChild(hdr); card.appendChild(ul2);
+  }
+
+  // 申辦步驟
+  if (data.steps && data.steps.length) {
+    const lbl = document.createElement('div'); lbl.className = 'section-label'; lbl.dataset.section = 'section_steps'; lbl.textContent = getSectionLabel('section_steps'); card.appendChild(lbl);
+    const ol = document.createElement('ol'); ol.className = 'steps-list';
+    data.steps.forEach((s, i) => {
+      const li = document.createElement('li');
+      const num = document.createElement('span'); num.className = 'step-num'; num.textContent = i+1;
+      const txt = document.createElement('span'); txt.textContent = s;
+      li.appendChild(num); li.appendChild(txt); ol.appendChild(li);
+    });
+    card.appendChild(ol);
+  }
+
+  // Google 地圖按鈕
+  const officeKw = getOfficeKeyword(data.county);
+  const row = document.createElement('div');
+  row.className = 'map-btn-row';
+
+  // 「附近辦理地點」— 用 Geolocation 定位後搜尋最近
+  const btnNear = document.createElement('button');
+  btnNear.className = 'map-btn map-btn-near';
+  btnNear.innerHTML = '📍 搜尋附近辦理地點';
+  btnNear.addEventListener('click', () => openNearbyOffice(officeKw));
+
+  // 「直接搜尋」— 不需定位，直接 Google Maps 搜尋
+  const btnSearch = document.createElement('a');
+  btnSearch.className = 'map-btn map-btn-search';
+  btnSearch.target = '_blank';
+  btnSearch.rel = 'noopener';
+  btnSearch.innerHTML = '🗺️ 直接用 Google 地圖搜尋';
+  btnSearch.href = `https://www.google.com/maps/search/${encodeURIComponent(officeKw)}`;
+
+  row.appendChild(btnNear);
+  row.appendChild(btnSearch);
+  card.appendChild(row);
+
+  container.appendChild(card);
+  document.getElementById('info-content').classList.add('visible');
+}
+
+function showNotAvailable(name) {
+  document.getElementById('info-placeholder').style.display = 'none';
+  document.getElementById('info-content').classList.remove('visible');
+  document.getElementById('not-available-msg').textContent = `${name}：目前查無此補助資料`;
+  document.getElementById('not-available').classList.add('visible');
+}
+
+function resetInfoPanel() {
+  document.getElementById('info-placeholder').style.display = 'flex';
+  document.getElementById('info-content').classList.remove('visible');
+  document.getElementById('not-available').classList.remove('visible');
+  document.getElementById('subsidies-container').innerHTML = '';
+  document.getElementById('county-title').textContent = '';
+}
+
+/* ═══════════════════════════════════════
+   無障礙：字體大小
+═══════════════════════════════════════ */
+function setFontSize(level) {
+  document.documentElement.classList.remove('fs-large', 'fs-xlarge');
+  if (level === 'large')  document.documentElement.classList.add('fs-large');
+  if (level === 'xlarge') document.documentElement.classList.add('fs-xlarge');
+  ['fs-normal','fs-large','fs-xlarge'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.toggle('active', id === 'fs-' + level);
+  });
+  localStorage.setItem('subsidy_fs', level);
+}
+
+/* ═══════════════════════════════════════
+   無障礙：高對比
+═══════════════════════════════════════ */
+function toggleHighContrast() {
+  document.body.classList.toggle('high-contrast');
+  const btn = document.getElementById('hc-btn');
+  btn.classList.toggle('active', document.body.classList.contains('high-contrast'));
+}
+
+function getSectionLabel(key) {
+  const labels = {
+    section_conditions: '申請條件',
+    section_docs: '所需文件 Checklist',
+    section_steps: '申辦步驟'
+  };
+  return labels[key] || '';
+}
+function getCopyBtnText()  { return '📋 複製清單'; }
+function getCopyDoneText() { return '✅ 已複製！'; }
+
+// 頁面載入時套用已儲存的字體大小
+(function initPreferences() {
+  const savedFs = localStorage.getItem('subsidy_fs');
+  if (savedFs && ['normal','large','xlarge'].includes(savedFs)) {
+    setFontSize(savedFs);
+  }
+})();
+
+/* ═══════════════════════════════════════
+   Google 地圖：辦理地點搜尋
+═══════════════════════════════════════ */
+
+// 各縣市 × 補助類別 的辦理機關搜尋關鍵字
+// 規則：
+//   - 長照 / 醫療 → 長照管理中心 or 衛生局
+//   - 生活津貼 / 扶助 → 公所社會課（鄉鎮層）
+//   - 身心障礙 → 社會局身心障礙服務
+//   - 原住民 → 原住民族行政機關
+//   - 一般社會補助 → 社會局/處
+const OFFICE_KEYWORD = {
+  // ─ 長者 ─
+  elderly_living:    c => `${c}公所社會課 中低收入老人生活津貼`,
+  elderly_care:      c => `${c}長期照顧管理中心`,
+  elderly_medical:   c => `${c}公所社會課 老人醫療補助`,
+  elderly_transport: c => `${c}公所 敬老卡申請`,
+  elderly_ltc20:     c => `${c}長期照顧管理中心`,
+  elderly_denture:   c => `${c}公所社會課 老人假牙補助`,
+  elderly_chongyang: c => `${c}公所 重陽敬老禮金`,
+  // ─ 中低收 ─
+  lowincome_living:  c => `${c}公所社會課 低收入戶`,
+  lowincome_edu:     c => `${c}教育局`,
+  lowincome_medical: c => `${c}公所社會課 醫療補助`,
+  lowincome_rent:    c => `${c}社會局 租金補貼`,
+  lowincome_welfare: c => `${c}社會局`,
+  // ─ 身心障礙 ─
+  disability_cash:   c => `${c}社會局 身心障礙生活補助`,
+  disability_ltc:    c => `${c}長期照顧管理中心`,
+  disability_vehicle:c => `${c}監理所 身心障礙停車優惠`,
+  disability_edu:    c => `${c}教育局 身心障礙學生`,
+  disability_employ: c => `${c}就業服務站 身心障礙`,
+  // ─ 原住民及新住民 ─
+  indigenous_living: c => `${c}原住民族行政局`,
+  indigenous_edu:    c => `${c}原住民族行政局 就學補助`,
+  indigenous_employ: c => `${c}原住民族行政局 就業`,
+  indigenous_culture:c => `${c}原住民族行政局`,
+  indigenous_new:    c => `${c}社會局 新住民服務`,
+  indigenous_newlang:c => `${c}新住民學習中心`,
+  // ─ 單親家庭 ─
+  singleparent_living:  c => `${c}公所社會課 單親家庭`,
+  singleparent_childcare:c => `${c}社會局 托育補助`,
+  singleparent_edu:     c => `${c}教育局 單親補助`,
+  singleparent_employ:  c => `${c}就業服務站`,
+  singleparent_rent:    c => `${c}社會局 租金補貼`,
+  singleparent_child:   c => `${c}社會局 兒童補助`
+};
+
+function getOfficeKeyword(countyName) {
+  const key = `${currentCat}_${currentType}`;
+  const fn = OFFICE_KEYWORD[key];
+  return fn ? fn(countyName) : `${countyName}社會局`;
+}
+
+function openNearbyOffice(keyword) {
+  if (!navigator.geolocation) {
+    window.open(`https://www.google.com/maps/search/${encodeURIComponent(keyword)}`, '_blank');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      // 以使用者目前位置為中心，在 Google Maps 搜尋附近的辦理地點
+      const url = `https://www.google.com/maps/search/${encodeURIComponent(keyword)}/@${lat},${lng},13z`;
+      window.open(url, '_blank');
+    },
+    () => {
+      // 拒絕定位或逾時，fallback 直接搜尋（不帶座標）
+      window.open(`https://www.google.com/maps/search/${encodeURIComponent(keyword)}`, '_blank');
+    },
+    { timeout: 6000 }
+  );
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>申請補助小幫手</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: #f3f4f6;
+      color: #1f2328;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a56a0;
+      color: #fff;
+      padding: 18px 24px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+    }
+    header p {
+      font-size: .875rem;
+      font-weight: 400;
+      opacity: .85;
+      margin-top: 4px;
+    }
+
+    /* ── Step wrapper ── */
+    .steps-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 0;
+    }
+
+    .step-block {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .step-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* ── Step 1：類別按鈕 ── */
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .cat-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      min-width: 110px;
+      --accent: #3b82d4;
+      --bg-light: #eff6ff;
+    }
+    .cat-btn .icon { font-size: 1.6rem; }
+    .cat-btn .label { font-size: .85rem; font-weight: 600; color: #374151; }
+    .cat-btn:hover { border-color: var(--accent); background: var(--bg-light); }
+    .cat-btn.active {
+      border-color: var(--accent);
+      background: var(--bg-light);
+    }
+    .cat-btn.active .icon,
+    .cat-btn.active .label { color: var(--accent); }
+
+    .cat-btn[data-cat="elderly"]      { --accent: #d97706; --bg-light: #fffbeb; }
+    .cat-btn[data-cat="lowincome"]    { --accent: #2563eb; --bg-light: #eff6ff; }
+    .cat-btn[data-cat="disability"]   { --accent: #7c3aed; --bg-light: #f5f3ff; }
+    .cat-btn[data-cat="indigenous"]   { --accent: #059669; --bg-light: #ecfdf5; }
+    .cat-btn[data-cat="singleparent"] { --accent: #db2777; --bg-light: #fdf2f8; }
+
+    /* ── Step 2：補助項目選擇 ── */
+    #step2-block { display: none; }
+
+    .select-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .select-row label {
+      font-size: .9rem;
+      font-weight: 600;
+      color: #374151;
+      white-space: nowrap;
+    }
+    .select-row select {
+      flex: 1;
+      min-width: 200px;
+      padding: 9px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: .9rem;
+      background: #fff;
+      color: #1f2328;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+    .select-row select:focus { outline: none; border-color: #3b82d4; }
+
+    .btn-query {
+      padding: 9px 24px;
+      background: #1a56a0;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-query:hover { background: #3b82d4; }
+
+    /* ── Step 3+4：地圖 + 結果面板 ── */
+    #step34-block { display: none; }
+
+    .map-result-layout {
+      display: flex;
+      gap: 0;
+      align-items: flex-start;
+    }
+
+    /* 地圖面板 */
+    .map-panel {
+      flex: 0 0 300px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .map-panel h2 {
+      font-size: .85rem;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    #taiwan-map {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .county-path {
+      stroke: #fff;
+      stroke-width: 0.5;
+      cursor: default;
+      transition: opacity .15s;
+    }
+    .county-path.active {
+      cursor: pointer;
+    }
+    .county-path.active:hover { opacity: .75; }
+    .county-path.selected { stroke: #1a56a0; stroke-width: 2; }
+
+    .c-keelung      { fill: #a8d5ba; }
+    .c-taipei       { fill: #4e9af1; }
+    .c-new-taipei   { fill: #6cb4e4; }
+    .c-taoyuan      { fill: #cc80ff; }
+    .c-hsinchu-city { fill: #aaaaaa; }
+    .c-hsinchu      { fill: #c5c5c5; }
+    .c-miaoli       { fill: #00d4d4; }
+    .c-taichung     { fill: #a0c96c; }
+    .c-changhua     { fill: #66b2b2; }
+    .c-nantou       { fill: #4db870; }
+    .c-yunlin       { fill: #5bc0de; }
+    .c-chiayi-city  { fill: #f0ad4e; }
+    .c-chiayi       { fill: #ffd27f; }
+    .c-tainan       { fill: #c8a2d4; }
+    .c-kaohsiung    { fill: #ff8c69; }
+    .c-pingtung     { fill: #7fbf7f; }
+    .c-yilan        { fill: #b87c5a; }
+    .c-hualien      { fill: #ff80c0; }
+    .c-taitung      { fill: #7ec8e3; }
+    .c-penghu       { fill: #e8e066; }
+    .c-kinmen       { fill: #d4a96a; }
+    .c-lienchiang   { fill: #aaaaff; }
+    .c-default      { fill: #d1d5db; }
+
+    /* 非 active 縣市灰暗 */
+    .county-path:not(.active) { fill: #d1d5db !important; opacity: .5; }
+
+    .county-label {
+      font-size: 7px;
+      fill: #374151;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    }
+
+    /* 結果面板 */
+    .info-panel {
+      flex: 1;
+      min-width: 0;
+      margin-left: 16px;
+    }
+
+    .info-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 40px 20px;
+      color: #9ca3af;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+    .info-placeholder p { font-size: 15px; }
+
+    .info-content {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+    }
+    .info-content.visible { display: flex; }
+
+    .info-county-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1a56a0;
+      padding: 0 0 12px;
+    }
+
+    /* 補助卡片 */
+    .subsidy-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .subsidy-card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a56a0;
+    }
+
+    /* 簡介 */
+    .section-intro {
+      font-size: .9rem;
+      color: #374151;
+      line-height: 1.65;
+      padding: 10px 14px;
+      background: #f7f8fa;
+      border-left: 3px solid #3b82d4;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .section-label {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* 申請條件 */
+    .conditions-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .conditions-list li {
+      display: flex;
+      gap: 8px;
+      font-size: .875rem;
+      color: #374151;
+      padding: 6px 10px;
+      background: #f7f8fa;
+      border-radius: 6px;
+    }
+    .conditions-list li::before { content: "▸"; color: #1a56a0; flex-shrink: 0; margin-top: 1px; }
+
+    /* 文件 Checklist */
+    .checklist-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .copy-btn {
+      padding: 5px 14px;
+      background: #1a56a0;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .copy-btn:hover { background: #3b82d4; }
+    .copy-btn.copied { background: #16a34a; }
+
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: .875rem;
+      color: #374151;
+      padding: 8px 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .checklist li:hover { background: #f0f4ff; }
+    .checklist li input[type="checkbox"] { width: 16px; height: 16px; accent-color: #1a56a0; cursor: pointer; flex-shrink: 0; margin-top: 1px; }
+    .checklist li.checked { text-decoration: line-through; color: #9ca3af; background: #f9fafb; }
+
+    /* 申辦步驟 */
+    .steps-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .steps-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: .875rem;
+      color: #374151;
+    }
+    .step-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      border-radius: 50%;
+      background: #1a56a0;
+      color: #fff;
+      font-size: .75rem;
+      font-weight: 700;
+    }
+
+    .not-available {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 40px 20px;
+      color: #9ca3af;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+    .not-available.visible { display: flex; }
+
+    @media (max-width: 720px) {
+      .map-result-layout { flex-direction: column; }
+      .map-panel { flex: none; width: 100%; }
+      .info-panel { margin-left: 0; margin-top: 16px; }
+      .cat-btn { padding: 12px 14px; min-width: 90px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>📋 申請補助小幫手</div>
+  <p>選擇您的身分與補助項目，再點擊地圖上的縣市，即可查詢詳細資料與申辦流程</p>
+</header>
+
+<div class="steps-wrap">
+
+  <!-- Step 1 -->
+  <div class="step-block">
+    <div class="step-label">Step 1 &nbsp;選擇身分類別</div>
+    <div class="categories">
+      <button class="cat-btn" data-cat="elderly"      onclick="selectCat(this)">
+        <span class="icon">👴</span><span class="label">長者</span>
+      </button>
+      <button class="cat-btn" data-cat="lowincome"    onclick="selectCat(this)">
+        <span class="icon">🏠</span><span class="label">中低收入</span>
+      </button>
+      <button class="cat-btn" data-cat="disability"   onclick="selectCat(this)">
+        <span class="icon">♿</span><span class="label">身心障礙</span>
+      </button>
+      <button class="cat-btn" data-cat="indigenous"   onclick="selectCat(this)">
+        <span class="icon">🌿</span><span class="label">原住民及新住民</span>
+      </button>
+      <button class="cat-btn" data-cat="singleparent" onclick="selectCat(this)">
+        <span class="icon">👨‍👧</span><span class="label">單親家庭</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-block" id="step2-block">
+    <div class="step-label">Step 2 &nbsp;選擇補助項目</div>
+    <div class="select-row">
+      <label>補助項目</label>
+      <select id="type-select">
+        <option value="">— 請選擇 —</option>
+      </select>
+      <button class="btn-query" onclick="handleQuery()">查詢</button>
+    </div>
+  </div>
+
+  <!-- Step 3 + 4 -->
+  <div class="step-block" id="step34-block">
+    <div class="step-label">Step 3 &nbsp;點擊縣市 &nbsp;／&nbsp; Step 4 &nbsp;查看補助資料</div>
+    <div class="map-result-layout">
+
+      <!-- 地圖 -->
+      <div class="map-panel">
+        <h2>點擊亮起的縣市</h2>
+        <svg id="taiwan-map" viewBox="0 0 380 560" xmlns="http://www.w3.org/2000/svg">
+          <g id="counties-group"></g>
+          <g id="labels-group"></g>
+        </svg>
+      </div>
+
+      <!-- 結果 -->
+      <div class="info-panel">
+        <div class="info-placeholder" id="info-placeholder">
+          <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+            <path d="M20,8 L28,4 L42,8 L44,18 L40,30 L32,38 L22,42 L14,36 L10,24 L12,14 Z" stroke="#d1d5db" stroke-width="2" fill="none"/>
+            <circle cx="32" cy="22" r="3" fill="#9ca3af"/>
+            <line x1="32" y1="27" x2="32" y2="34" stroke="#9ca3af" stroke-width="2"/>
+          </svg>
+          <p>請在左邊點擊亮起的縣市</p>
+        </div>
+        <div class="info-content" id="info-content">
+          <div class="info-county-title" id="county-title"></div>
+          <div id="subsidies-container"></div>
+        </div>
+        <div class="not-available" id="not-available">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="20" stroke="#d1d5db" stroke-width="2"/>
+            <line x1="16" y1="16" x2="32" y2="32" stroke="#d1d5db" stroke-width="2"/>
+            <line x1="32" y1="16" x2="16" y2="32" stroke="#d1d5db" stroke-width="2"/>
+          </svg>
+          <p id="not-available-msg">此縣市資料尚未開放</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- .steps-wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script>
+
+/* ════════════════════════════════════════════
+   1. 靜態資料：各 category 的下拉選項
+   ════════════════════════════════════════════ */
+const TYPE_OPTIONS = {
+  elderly: [
+    { value: "living",    label: "中低收入老人生活津貼" },
+    { value: "care",      label: "長期照顧服務補助" },
+    { value: "medical",   label: "老人醫療費用補助" },
+    { value: "transport", label: "敬老卡／交通點數補助" },
+    { value: "ltc20",     label: "長照 2.0 服務補助" },
+    { value: "denture",   label: "老人假牙補助" },
+    { value: "chongyang", label: "重陽敬老禮金" }
+  ],
+  lowincome: [
+    { value: "living",    label: "低收入戶生活扶助" },
+    { value: "edu",       label: "就學生活補助" },
+    { value: "medical",   label: "醫療補助" },
+    { value: "rent",      label: "中央擴大租金補貼" },
+    { value: "emergency", label: "急難救助金／馬上關懷" }
+  ],
+  disability: [
+    { value: "living",  label: "身心障礙者生活補助" },
+    { value: "care",    label: "日間照顧及住宿費用補助" },
+    { value: "assist",  label: "輔具費用補助" },
+    { value: "home",    label: "無障礙住宅改善補助" },
+    { value: "vehicle", label: "專用車輛免稅及租屋補助" }
+  ],
+  indigenous: [
+    { value: "edu",          label: "原住民族獎助學金" },
+    { value: "employ",       label: "就業促進補助" },
+    { value: "newresident",  label: "新住民生活適應輔導" },
+    { value: "newemergency", label: "新住民急難救助與特殊境遇補助" },
+    { value: "skill",        label: "新住民及其子女技能檢定獎勵金" },
+    { value: "elderlyplus",  label: "原住民 55 歲以上長者敬老福利加碼" }
+  ],
+  singleparent: [
+    { value: "living",       label: "單親家庭生活補助" },
+    { value: "childcare",    label: "兒童托育補助" },
+    { value: "edu",          label: "子女就學補助" },
+    { value: "childliving",  label: "特殊境遇家庭子女生活津貼" },
+    { value: "emergency",    label: "特殊境遇家庭緊急生活扶助" },
+    { value: "legal",        label: "法律訴訟與律師費補助" }
+  ]
+};
+
+/* ════════════════════════════════════════════
+   2. SUBSIDY_MAP：記錄哪些縣市有對應資料
+      格式：{ category: { type: [countyId, ...] } }
+   ════════════════════════════════════════════ */
+const SUBSIDY_MAP = {
+  elderly: {
+    living:    ["kaohsiung"],
+    care:      ["kaohsiung"],
+    medical:   ["kaohsiung"],
+    transport: ["kaohsiung"],
+    ltc20:     ["kaohsiung"],
+    denture:   ["kaohsiung"],
+    chongyang: ["kaohsiung"]
+  },
+  lowincome: {
+    living:    ["kaohsiung"],
+    edu:       ["kaohsiung"],
+    medical:   ["kaohsiung"],
+    rent:      ["kaohsiung"],
+    emergency: ["kaohsiung"]
+  },
+  disability: {
+    living:  ["kaohsiung"],
+    care:    ["kaohsiung"],
+    assist:  ["kaohsiung"],
+    home:    ["kaohsiung"],
+    vehicle: ["kaohsiung"]
+  },
+  indigenous: {
+    edu:          ["kaohsiung"],
+    employ:       ["kaohsiung"],
+    newresident:  ["kaohsiung"],
+    newemergency: ["kaohsiung"],
+    skill:        ["kaohsiung"],
+    elderlyplus:  ["kaohsiung"]
+  },
+  singleparent: {
+    living:      ["kaohsiung"],
+    childcare:   ["kaohsiung"],
+    edu:         ["kaohsiung"],
+    childliving: ["kaohsiung"],
+    emergency:   ["kaohsiung"],
+    legal:       ["kaohsiung"]
+  }
+};
+
+/* ════════════════════════════════════════════
+   3. 縣市 ID 對照表
+   ════════════════════════════════════════════ */
+const COUNTY_MAP = {
+  "09007": { cls: "c-lienchiang",   id: "lienchiang",   name: "連江縣" },
+  "09020": { cls: "c-kinmen",       id: "kinmen",        name: "金門縣" },
+  "10002": { cls: "c-yilan",        id: "yilan",         name: "宜蘭縣" },
+  "10007": { cls: "c-changhua",     id: "changhua",      name: "彰化縣" },
+  "10008": { cls: "c-nantou",       id: "nantou",        name: "南投縣" },
+  "10009": { cls: "c-yunlin",       id: "yunlin",        name: "雲林縣" },
+  "10013": { cls: "c-pingtung",     id: "pingtung",      name: "屏東縣" },
+  "10014": { cls: "c-taitung",      id: "taitung",       name: "臺東縣" },
+  "10015": { cls: "c-hualien",      id: "hualien",       name: "花蓮縣" },
+  "10016": { cls: "c-penghu",       id: "penghu",        name: "澎湖縣" },
+  "10017": { cls: "c-keelung",      id: "keelung",       name: "基隆市" },
+  "10018": { cls: "c-hsinchu-city", id: "hsinchu-city",  name: "新竹市" },
+  "63000": { cls: "c-taipei",       id: "taipei",        name: "臺北市" },
+  "65000": { cls: "c-new-taipei",   id: "new-taipei",    name: "新北市" },
+  "66000": { cls: "c-taichung",     id: "taichung",      name: "臺中市" },
+  "67000": { cls: "c-tainan",       id: "tainan",        name: "臺南市" },
+  "68000": { cls: "c-taoyuan",      id: "taoyuan",       name: "桃園市" },
+  "10005": { cls: "c-miaoli",       id: "miaoli",        name: "苗栗縣" },
+  "10004": { cls: "c-hsinchu",      id: "hsinchu",       name: "新竹縣" },
+  "10020": { cls: "c-chiayi-city",  id: "chiayi-city",   name: "嘉義市" },
+  "10010": { cls: "c-chiayi",       id: "chiayi",        name: "嘉義縣" },
+  "64000": { cls: "c-kaohsiung",    id: "kaohsiung",     name: "高雄市" }
+};
+
+/* ════════════════════════════════════════════
+   4. 互動狀態
+   ════════════════════════════════════════════ */
+let currentCat  = null;   // 目前選擇的 category
+let currentType = null;   // 目前選擇的 type
+let AVAILABLE   = new Set(); // 目前有資料的縣市集合（動態）
+let selectedPath = null;
+let mapRendered  = false;
+
+/* ════════════════════════════════════════════
+   5. Step 1：選擇身分類別
+   ════════════════════════════════════════════ */
+function selectCat(btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+
+  // 更新 Step 2 下拉選單
+  const sel = document.getElementById('type-select');
+  sel.innerHTML = '<option value="">— 請選擇 —</option>';
+  TYPE_OPTIONS[currentCat].forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    sel.appendChild(o);
+  });
+
+  // 顯示 Step 2，隱藏 Step 3+4
+  document.getElementById('step2-block').style.display = 'block';
+  document.getElementById('step34-block').style.display = 'none';
+  resetInfoPanel();
+}
+
+/* ════════════════════════════════════════════
+   6. Step 2：按下查詢
+   ════════════════════════════════════════════ */
+function handleQuery() {
+  const sel = document.getElementById('type-select');
+  currentType = sel.value;
+  if (!currentType) {
+    alert('請先選擇補助項目');
+    return;
+  }
+
+  // 計算有資料的縣市
+  const available = (SUBSIDY_MAP[currentCat] && SUBSIDY_MAP[currentCat][currentType]) || [];
+  AVAILABLE = new Set(available);
+
+  // 重設地圖 active 狀態
+  document.querySelectorAll('.county-path').forEach(p => {
+    const id = p.dataset.county;
+    if (AVAILABLE.has(id)) {
+      p.classList.add('active');
+    } else {
+      p.classList.remove('active');
+    }
+  });
+
+  // 取消上次選擇
+  if (selectedPath) {
+    selectedPath.classList.remove('selected');
+    selectedPath = null;
+  }
+  resetInfoPanel();
+
+  // 顯示 Step 3+4
+  document.getElementById('step34-block').style.display = 'block';
+  document.getElementById('step34-block').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // 初次才渲染地圖
+  if (!mapRendered) {
+    renderMap();
+    mapRendered = true;
+  }
+}
+
+/* ════════════════════════════════════════════
+   7. 地圖相關（from index.html）
+   ════════════════════════════════════════════ */
+function topoToSVGPaths(topo) {
+  const { scale, translate } = topo.transform;
+  const geoms = topo.objects.map.geometries;
+
+  const decodedArcs = topo.arcs.map(arc => {
+    let x = 0, y = 0;
+    return arc.map(([dx, dy]) => { x += dx; y += dy; return [x, y]; });
+  });
+
+  let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  decodedArcs.forEach(arc => {
+    arc.forEach(([qx, qy]) => {
+      const lon = qx * scale[0] + translate[0];
+      const lat = qy * scale[1] + translate[1];
+      if (lon < minLon) minLon = lon;
+      if (lon > maxLon) maxLon = lon;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+    });
+  });
+
+  const SVG_W = 380, SVG_H = 560, PAD = 4, FILL = 1.6, SHIFT_X = 40;
+  const lonRange = maxLon - minLon;
+  const latRange = maxLat - minLat;
+  const scaleX = (SVG_W - PAD * 2) * FILL / lonRange;
+  const scaleY = (SVG_H - PAD * 2) * FILL / latRange;
+  const mapScale = Math.min(scaleX, scaleY);
+  const offsetX = PAD + (SVG_W - PAD * 2 - lonRange * mapScale) / 2 + SHIFT_X;
+  const offsetY = PAD + (SVG_H - PAD * 2 - latRange * mapScale) / 2;
+
+  function project(qx, qy) {
+    const lon = qx * scale[0] + translate[0];
+    const lat = qy * scale[1] + translate[1];
+    const px = offsetX + (lon - minLon) * mapScale;
+    const py = offsetY + (maxLat - lat) * mapScale;
+    return [px.toFixed(2), py.toFixed(2)];
+  }
+
+  function arcsToDStr(arcIndexArrays) {
+    let d = "";
+    arcIndexArrays.forEach(ring => {
+      let ringD = "";
+      ring.forEach(arcIdx => {
+        const reversed = arcIdx < 0;
+        const arc = decodedArcs[reversed ? ~arcIdx : arcIdx];
+        const pts = reversed ? [...arc].reverse() : arc;
+        pts.forEach((pt, i) => {
+          const [px, py] = project(pt[0], pt[1]);
+          ringD += (i === 0 ? (ringD ? "L" : "M") : "L") + px + "," + py;
+        });
+      });
+      d += ringD + "Z";
+    });
+    return d;
+  }
+
+  function ringPointCount(polyArcs) {
+    return polyArcs[0].reduce((sum, arcIdx) => {
+      return sum + decodedArcs[arcIdx < 0 ? ~arcIdx : arcIdx].length;
+    }, 0);
+  }
+
+  return geoms.map(geom => {
+    let d = "";
+    if (geom.type === "Polygon") {
+      d = arcsToDStr(geom.arcs);
+    } else if (geom.type === "MultiPolygon") {
+      const largest = geom.arcs.reduce((best, poly) =>
+        ringPointCount(poly) > ringPointCount(best) ? poly : best
+      );
+      d = arcsToDStr(largest);
+    }
+    return { props: geom.properties, d };
+  });
+}
+
+function centroid(dStr) {
+  const pts = [];
+  const re = /[ML]([\d.]+),([\d.]+)/g;
+  let m;
+  while ((m = re.exec(dStr)) !== null) pts.push([parseFloat(m[1]), parseFloat(m[2])]);
+  if (!pts.length) return [0, 0];
+  return [
+    pts.reduce((s, p) => s + p[0], 0) / pts.length,
+    pts.reduce((s, p) => s + p[1], 0) / pts.length
+  ];
+}
+
+const ISLAND_OVERRIDES = {
+  "penghu":     { tx: 20,  ty: -100, s: 2.2 },
+  "kinmen":     { tx: -20, ty: -430, s: 3.0 },
+  "lienchiang": { tx: 30,  ty: -480, s: 3.5 }
+};
+
+async function renderMap() {
+  const res = await fetch("taiwan-country.topo.json");
+  const topo = await res.json();
+  const paths = topoToSVGPaths(topo);
+
+  const group      = document.getElementById("counties-group");
+  const labelGroup = document.getElementById("labels-group");
+  group.innerHTML = "";
+  labelGroup.innerHTML = "";
+
+  paths.forEach(({ props, d }) => {
+    if (!d) return;
+    const info      = COUNTY_MAP[props.id];
+    const cls       = info ? info.cls : "c-default";
+    const countyId  = info ? info.id  : props.id;
+    const countyName = info ? info.name : (props.name || "");
+    const isActive  = info && AVAILABLE.has(info.id);
+    const override  = ISLAND_OVERRIDES[countyId];
+
+    const container = override
+      ? (() => {
+          const [cx, cy] = centroid(d);
+          const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          g.setAttribute("transform",
+            `translate(${(cx * (override.s - 1) + override.tx).toFixed(1)}, ${(cy * (override.s - 1) + override.ty).toFixed(1)}) scale(${override.s})`
+          );
+          return g;
+        })()
+      : null;
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("class", `county-path ${cls}${isActive ? " active" : ""}`);
+    path.dataset.county = countyId;
+    path.dataset.name   = countyName;
+
+    if (container) { container.appendChild(path); group.appendChild(container); }
+    else           { group.appendChild(path); }
+
+    // 標籤
+    const [cx, cy] = centroid(d);
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("class", "county-label");
+    text.textContent = countyName.length > 2 ? countyName.slice(0, 2) : countyName;
+
+    if (override) {
+      const gTx   = parseFloat((cx * (override.s - 1) + override.tx).toFixed(1));
+      const gTy   = parseFloat((cy * (override.s - 1) + override.ty).toFixed(1));
+      text.setAttribute("x", (override.s * cx + gTx).toFixed(1));
+      text.setAttribute("y", (override.s * cy + gTy + 3).toFixed(1));
+    } else {
+      text.setAttribute("x", cx);
+      text.setAttribute("y", cy + 3);
+    }
+    labelGroup.appendChild(text);
+  });
+
+  bindMapEvents();
+}
+
+/* ════════════════════════════════════════════
+   8. 地圖點擊事件
+   ════════════════════════════════════════════ */
+function bindMapEvents() {
+  document.querySelectorAll(".county-path").forEach(path => {
+    path.addEventListener("click", async function () {
+      const countyId   = this.dataset.county;
+      const countyName = this.dataset.name;
+      if (!countyId || !AVAILABLE.has(countyId)) return;
+
+      if (selectedPath) selectedPath.classList.remove("selected");
+      this.classList.add("selected");
+      selectedPath = this;
+
+      const data = await loadCountyData(countyId);
+      data ? renderSubsidyInfo(data) : showNotAvailable(countyName);
+    });
+  });
+}
+
+/* ════════════════════════════════════════════
+   9. 資料載入：data/{category}/{type}-{county}.json
+   ════════════════════════════════════════════ */
+async function loadCountyData(countyId) {
+  try {
+    const res = await fetch(`data/${currentCat}/${currentType}-${countyId}.json`);
+    if (!res.ok) throw new Error();
+    return await res.json();
+  } catch { return null; }
+}
+
+/* ════════════════════════════════════════════
+   10. 渲染補助資訊（含 intro + conditions + documents checklist + steps）
+   ════════════════════════════════════════════ */
+function renderSubsidyInfo(data) {
+  document.getElementById("info-placeholder").style.display = "none";
+  document.getElementById("not-available").classList.remove("visible");
+
+  document.getElementById("county-title").textContent = `${data.county}　${data.title}`;
+  const container = document.getElementById("subsidies-container");
+  container.innerHTML = "";
+
+  const card = document.createElement("div");
+  card.className = "subsidy-card";
+
+  // 簡介
+  if (data.intro) {
+    const introEl = document.createElement("p");
+    introEl.className = "section-intro";
+    introEl.textContent = data.intro;
+    card.appendChild(introEl);
+  }
+
+  // 申請條件
+  if (data.conditions && data.conditions.length) {
+    const lbl = document.createElement("div");
+    lbl.className = "section-label";
+    lbl.textContent = "申請條件";
+    card.appendChild(lbl);
+
+    const ul = document.createElement("ul");
+    ul.className = "conditions-list";
+    data.conditions.forEach(c => {
+      const li = document.createElement("li");
+      li.textContent = c;
+      ul.appendChild(li);
+    });
+    card.appendChild(ul);
+  }
+
+  // 所需文件 Checklist
+  if (data.documents && data.documents.length) {
+    const hdr = document.createElement("div");
+    hdr.className = "checklist-header";
+
+    const lbl = document.createElement("div");
+    lbl.className = "section-label";
+    lbl.textContent = "所需文件 Checklist";
+
+    const btn = document.createElement("button");
+    btn.className = "copy-btn";
+    btn.textContent = "📋 複製清單";
+
+    const ul2 = document.createElement("ul");
+    ul2.className = "checklist";
+    data.documents.forEach(doc => {
+      const li = document.createElement("li");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      const span = document.createElement("span");
+      span.textContent = doc;
+      li.appendChild(cb);
+      li.appendChild(span);
+      li.addEventListener("click", e => {
+        if (e.target !== cb) cb.checked = !cb.checked;
+        li.classList.toggle("checked", cb.checked);
+      });
+      ul2.appendChild(li);
+    });
+
+    btn.addEventListener("click", () => {
+      const lines = [...ul2.querySelectorAll("li")].map(li => {
+        const checked = li.querySelector("input").checked;
+        return (checked ? "✅ " : "☐ ") + li.querySelector("span").textContent;
+      });
+      navigator.clipboard.writeText(lines.join("\n")).then(() => {
+        btn.textContent = "✅ 已複製！";
+        btn.classList.add("copied");
+        setTimeout(() => { btn.textContent = "📋 複製清單"; btn.classList.remove("copied"); }, 2000);
+      });
+    });
+
+    hdr.appendChild(lbl);
+    hdr.appendChild(btn);
+    card.appendChild(hdr);
+    card.appendChild(ul2);
+  }
+
+  // 申辦步驟
+  if (data.steps && data.steps.length) {
+    const lbl = document.createElement("div");
+    lbl.className = "section-label";
+    lbl.textContent = "申辦步驟";
+    card.appendChild(lbl);
+
+    const ol = document.createElement("ol");
+    ol.className = "steps-list";
+    data.steps.forEach((s, i) => {
+      const li = document.createElement("li");
+      const num = document.createElement("span");
+      num.className = "step-num";
+      num.textContent = i + 1;
+      const txt = document.createElement("span");
+      txt.textContent = s;
+      li.appendChild(num);
+      li.appendChild(txt);
+      ol.appendChild(li);
+    });
+    card.appendChild(ol);
+  }
+
+  container.appendChild(card);
+  document.getElementById("info-content").classList.add("visible");
+}
+
+/* ════════════════════════════════════════════
+   11. 未開放提示
+   ════════════════════════════════════════════ */
+function showNotAvailable(name) {
+  document.getElementById("info-placeholder").style.display = "none";
+  document.getElementById("info-content").classList.remove("visible");
+  document.getElementById("not-available-msg").textContent = `${name}：此縣市目前尚無此補助資料`;
+  document.getElementById("not-available").classList.add("visible");
+}
+
+function resetInfoPanel() {
+  document.getElementById("info-placeholder").style.display = "flex";
+  document.getElementById("info-content").classList.remove("visible");
+  document.getElementById("not-available").classList.remove("visible");
+  document.getElementById("subsidies-container").innerHTML = "";
+  document.getElementById("county-title").textContent = "";
+}
+
+</script>
+</body>
+</html>
