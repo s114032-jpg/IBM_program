@@ -3,528 +3,744 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>補助小幫手</title>
+  <title>補助小幫手 — 找到適合你的社會補助</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow: #f5c518;
+      --yellow-dark: #d4a800;
+      --yellow-light: #fff8d6;
+      --bg: #111111;
+      --surface: #1e1e1e;
+      --surface2: #2a2a2a;
+      --border: #333333;
+      --text: #f0f0f0;
+      --muted: #999999;
+      --radius: 20px;
+    }
 
     body {
       font-family: -apple-system, "Segoe UI", "Noto Sans TC", sans-serif;
-      background: #1a1a1a;
-      color: #1a1a1a;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-    }
-
-    /* ── Header ── */
-    header {
-      background: #f5c518;
-      padding: 20px 24px 16px;
-      text-align: center;
-      border-bottom: 3px solid #d4a800;
-    }
-    header h1 {
-      font-size: 26px;
-      font-weight: 800;
-      color: #1a1a1a;
-      letter-spacing: 2px;
-    }
-    header p {
-      font-size: 13px;
-      color: #5a4800;
-      margin-top: 4px;
-    }
-
-    /* ── Main container ── */
-    main {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 24px 16px 40px;
-    }
-
-    /* ── Screen management ── */
-    .screen { display: none; }
-    .screen.active { display: block; }
-
-    /* ── Category buttons ── */
-    #screen-home h2 {
       font-size: 15px;
-      color: #f5c518;
-      text-align: center;
-      margin-bottom: 20px;
-      letter-spacing: 1px;
+      line-height: 1.6;
     }
 
-    .cat-btn {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      padding: 18px 22px;
-      margin-bottom: 14px;
-      background: #f5c518;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 17px;
-      font-weight: 700;
-      color: #1a1a1a;
-      transition: background 0.15s, transform 0.1s;
-      gap: 14px;
-    }
-    .cat-btn:hover { background: #ffd63a; transform: scale(1.02); }
-    .cat-btn:active { transform: scale(0.98); }
-    .cat-btn .icon {
-      font-size: 26px;
-      line-height: 1;
-    }
-
-    /* ── Subsidy list screen ── */
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: none;
-      border: 2px solid #f5c518;
-      border-radius: 12px;
-      color: #f5c518;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 7px 14px;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
-    .back-btn:hover { background: #f5c51820; }
-
-    #screen-list h2 {
-      font-size: 18px;
-      font-weight: 800;
-      color: #f5c518;
-      margin-bottom: 16px;
-    }
-
-    .subsidy-item {
+    /* ══════════════ NAVBAR ══════════════ */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(17,17,17,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 58px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      width: 100%;
-      padding: 15px 18px;
-      margin-bottom: 10px;
-      background: #2a2a2a;
-      border: 1.5px solid #3a3a3a;
-      border-radius: 16px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 600;
-      color: #f0f0f0;
-      text-align: left;
-      transition: border-color 0.15s, background 0.15s;
     }
-    .subsidy-item:hover {
-      border-color: #f5c518;
-      background: #2e2b1a;
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
     }
-    .subsidy-item .arrow {
-      color: #f5c518;
+    .nav-logo-icon {
+      width: 34px; height: 34px;
+      background: var(--yellow);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
       font-size: 18px;
     }
-
-    /* ── Detail screen ── */
-    #screen-detail .detail-header {
-      background: #f5c518;
-      border-radius: 18px;
-      padding: 16px 20px;
-      margin-bottom: 20px;
-    }
-    #screen-detail .detail-header h2 {
-      font-size: 20px;
+    .nav-logo-text {
+      font-size: 17px;
       font-weight: 800;
-      color: #1a1a1a;
+      color: var(--yellow);
+      letter-spacing: 1px;
     }
-    #screen-detail .detail-header p {
+    .nav-logo-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .nav-links {
+      display: flex;
+      gap: 4px;
+    }
+    .nav-links a {
+      padding: 6px 14px;
+      border-radius: 8px;
       font-size: 13px;
-      color: #5a4800;
-      margin-top: 4px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
     }
+    .nav-links a:hover { background: var(--surface2); color: var(--text); }
+
+    /* ══════════════ HERO ══════════════ */
+    .hero {
+      padding: 52px 20px 40px;
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 4px 14px;
+      font-size: 12px;
+      color: var(--yellow);
+      margin-bottom: 18px;
+      font-weight: 600;
+    }
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    .hero h1 span { color: var(--yellow); }
+    .hero p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    /* ── 搜尋框 ── */
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 16px;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .search-wrap:focus-within { border-color: var(--yellow); }
+    .search-wrap input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-wrap button {
+      background: var(--yellow);
+      border: none;
+      border-radius: 10px;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .search-wrap button:hover { background: #ffd63a; }
+
+    /* ── 統計列 ── */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin-top: 28px;
+    }
+    .stat-item { text-align: center; }
+    .stat-item .num { font-size: 22px; font-weight: 800; color: var(--yellow); }
+    .stat-item .label { font-size: 12px; color: var(--muted); }
+
+    /* ══════════════ SECTION TITLE ══════════════ */
+    .section {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    /* ══════════════ CATEGORY CARDS ══════════════ */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .cat-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 18px;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .cat-card:hover {
+      border-color: var(--yellow);
+      background: #1e1b0a;
+      transform: translateY(-2px);
+    }
+    .cat-card:active { transform: translateY(0); }
+    .cat-card .c-icon {
+      font-size: 28px;
+      width: 48px; height: 48px;
+      background: var(--surface2);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .cat-card .c-text h3 { font-size: 15px; font-weight: 700; color: var(--text); }
+    .cat-card .c-text p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    /* 第五個按鈕全寬置中 */
+    .cat-grid-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .cat-grid-last {
+      display: flex;
+      justify-content: center;
+    }
+    .cat-grid-last .cat-card {
+      width: calc(50% - 6px);
+    }
+
+    /* ══════════════ FEATURED SUBSIDY LIST ══════════════ */
+    .subsidy-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-decoration: none;
+    }
+    .subsidy-row:hover { border-color: var(--yellow); background: #1e1b0a; }
+    .subsidy-row .sr-left { display: flex; align-items: center; gap: 12px; }
+    .subsidy-row .sr-tag {
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      color: var(--yellow);
+      white-space: nowrap;
+    }
+    .subsidy-row .sr-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .subsidy-row .sr-sub { font-size: 12px; color: var(--muted); }
+    .subsidy-row .sr-arrow { color: var(--yellow); font-size: 18px; flex-shrink: 0; }
+
+    /* ══════════════ MODAL OVERLAY ══════════════ */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+    .overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 0 0 32px;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    /* ── 類別列表 modal ── */
+    .modal-header {
+      position: sticky; top: 0;
+      background: var(--surface);
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h2 { font-size: 17px; font-weight: 800; }
+    .modal-close {
+      width: 30px; height: 30px;
+      background: var(--surface2);
+      border: none; border-radius: 50%;
+      color: var(--text); font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+
+    .modal-list-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .modal-list-item:last-child { border-bottom: none; }
+    .modal-list-item:hover { background: var(--surface2); }
+    .modal-list-item .ml-left h3 { font-size: 15px; font-weight: 600; }
+    .modal-list-item .ml-left p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .modal-list-item .ml-arrow { color: var(--yellow); font-size: 18px; }
+
+    /* ── 補助詳情 modal ── */
+    .detail-hero {
+      background: var(--yellow);
+      padding: 20px 20px 18px;
+    }
+    .detail-hero .dh-tag {
+      font-size: 11px; font-weight: 700;
+      background: rgba(0,0,0,0.15);
+      border-radius: 6px; padding: 2px 8px;
+      color: #1a1a1a; display: inline-block; margin-bottom: 8px;
+    }
+    .detail-hero h2 { font-size: 20px; font-weight: 900; color: #1a1a1a; }
+    .detail-hero p { font-size: 13px; color: #5a4800; margin-top: 4px; }
 
     .tab-bar {
       display: flex;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1.5px solid #f5c518;
-      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky; top: 0; z-index: 10;
     }
     .tab-btn {
-      flex: 1;
-      padding: 10px 4px;
-      border: none;
-      background: #2a2a2a;
-      color: #f5c518;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      flex: 1; padding: 12px 4px;
+      background: none; border: none;
+      color: var(--muted); font-size: 13px; font-weight: 600;
+      cursor: pointer; border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
     }
-    .tab-btn.active {
-      background: #f5c518;
-      color: #1a1a1a;
-    }
-    .tab-btn:not(:last-child) {
-      border-right: 1px solid #f5c518;
-    }
+    .tab-btn.active { color: var(--yellow); border-bottom-color: var(--yellow); }
 
-    .tab-content { display: none; }
+    .tab-content { display: none; padding: 18px 20px; }
     .tab-content.active { display: block; }
 
-    .detail-card {
-      background: #2a2a2a;
-      border: 1.5px solid #3a3a3a;
-      border-radius: 16px;
-      padding: 18px;
-    }
-    .detail-card h3 {
-      font-size: 14px;
-      color: #f5c518;
-      font-weight: 700;
+    .info-block { margin-bottom: 18px; }
+    .info-block h3 {
+      font-size: 12px; font-weight: 700;
+      color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
       margin-bottom: 10px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #3a3a3a;
     }
-    .detail-card ul {
-      list-style: none;
-      padding: 0;
+    .info-block ul { list-style: none; }
+    .info-block ul li {
+      font-size: 14px; color: var(--text);
+      padding: 7px 0; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
     }
-    .detail-card ul li {
-      font-size: 14px;
-      color: #e0e0e0;
-      padding: 6px 0;
-      border-bottom: 1px solid #333;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      line-height: 1.5;
-    }
-    .detail-card ul li:last-child { border-bottom: none; }
-    .detail-card ul li::before {
-      content: "▸";
-      color: #f5c518;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
+    .info-block ul li:last-child { border-bottom: none; }
+    .info-block ul li::before { content: "▸"; color: var(--yellow); flex-shrink: 0; margin-top: 2px; }
 
-    .step-list { list-style: none; padding: 0; counter-reset: steps; }
+    .step-list { list-style: none; counter-reset: steps; }
     .step-list li {
       counter-increment: steps;
-      font-size: 14px;
-      color: #e0e0e0;
-      padding: 8px 0;
-      border-bottom: 1px solid #333;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      line-height: 1.5;
+      font-size: 14px; color: var(--text);
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 12px; line-height: 1.5;
     }
     .step-list li:last-child { border-bottom: none; }
     .step-list li::before {
       content: counter(steps);
-      background: #f5c518;
-      color: #1a1a1a;
-      font-weight: 800;
-      font-size: 12px;
-      min-width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      background: var(--yellow); color: #111;
+      font-weight: 800; font-size: 12px;
+      min-width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
 
-    .map-placeholder {
-      background: #222;
-      border: 1.5px dashed #f5c518;
-      border-radius: 12px;
-      padding: 24px;
+    .doc-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 12px;
+      font-size: 13px; color: var(--text);
+      margin: 0 6px 8px 0;
+    }
+    .doc-chip::before { content: "📄"; font-size: 13px; }
+
+    .office-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+    }
+    .office-card strong { color: var(--yellow); display: block; margin-bottom: 4px; font-size: 14px; }
+    .office-card span { font-size: 13px; color: var(--muted); }
+
+    /* ══════════════ FOOTER ══════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 20px;
       text-align: center;
-      color: #f5c518;
-      font-size: 14px;
-      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--muted);
     }
-    .map-placeholder .map-icon { font-size: 36px; margin-bottom: 8px; }
+    footer a { color: var(--yellow); text-decoration: none; }
 
-    .office-item {
-      background: #2a2a2a;
-      border: 1px solid #3a3a3a;
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      font-size: 13px;
-      color: #e0e0e0;
+    /* ══════════════ RWD ══════════════ */
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 26px; }
+      .cat-grid-last .cat-card { width: 100%; }
+      .nav-links { display: none; }
     }
-    .office-item strong { color: #f5c518; display: block; margin-bottom: 4px; }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>🌟 補助小幫手</h1>
-  <p>找到適合你的社會補助資源</p>
-</header>
-
-<main>
-
-  <!-- ① 首頁：五大類別 -->
-  <div id="screen-home" class="screen active">
-    <h2>請選擇你的身份類別</h2>
-
-    <button class="cat-btn" onclick="showList('elder')">
-      <span class="icon">👴</span>長者
-    </button>
-    <button class="cat-btn" onclick="showList('lowincome')">
-      <span class="icon">🏠</span>中低收入戶
-    </button>
-    <button class="cat-btn" onclick="showList('disability')">
-      <span class="icon">♿</span>身心障礙者
-    </button>
-    <button class="cat-btn" onclick="showList('indigenous')">
-      <span class="icon">🌿</span>原住民及新住民
-    </button>
-    <button class="cat-btn" onclick="showList('singleparent')">
-      <span class="icon">👩‍👦</span>單親家庭
-    </button>
-  </div>
-
-  <!-- ② 補助細項列表 -->
-  <div id="screen-list" class="screen">
-    <button class="back-btn" onclick="goBack('home')">← 返回</button>
-    <h2 id="list-title"></h2>
-    <div id="list-items"></div>
-  </div>
-
-  <!-- ③ 補助詳細內容 -->
-  <div id="screen-detail" class="screen">
-    <button class="back-btn" onclick="goBack('list')">← 返回列表</button>
-    <div class="detail-header">
-      <h2 id="detail-title"></h2>
-      <p id="detail-subtitle"></p>
+<!-- ── Navbar ── -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon">🌟</div>
+    <div>
+      <div class="nav-logo-text">補助小幫手</div>
+      <div class="nav-logo-sub">社會補助查詢平台</div>
     </div>
+  </a>
+  <div class="nav-links">
+    <a href="#categories">類別</a>
+    <a href="#featured">精選補助</a>
+    <a href="#">關於</a>
+  </div>
+</nav>
 
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-badge">✦ 全台補助資訊整合平台</div>
+  <h1>找到<span>最適合你</span>的<br>社會補助資源</h1>
+  <p>整合政府各類社會福利補助，快速查詢申請方式、必備文件與洽辦地點</p>
+  <div class="search-wrap">
+    <span style="color:var(--muted);font-size:16px;">🔍</span>
+    <input type="text" id="search-input" placeholder="搜尋補助名稱，例如：老農津貼、育兒補助…" oninput="handleSearch(this.value)" />
+    <button onclick="handleSearch(document.getElementById('search-input').value)">搜尋</button>
+  </div>
+  <div class="stats">
+    <div class="stat-item"><div class="num">5</div><div class="label">補助類別</div></div>
+    <div class="stat-item"><div class="num">11</div><div class="label">補助項目</div></div>
+    <div class="stat-item"><div class="num">即時</div><div class="label">資料更新</div></div>
+  </div>
+</div>
+
+<!-- ── Categories ── -->
+<div class="section" id="categories">
+  <div class="section-title">補助類別</div>
+  <div class="cat-grid-wrap">
+    <div class="cat-grid">
+      <div class="cat-card" onclick="openListModal('elder')">
+        <div class="c-icon">👴</div>
+        <div class="c-text"><h3>長者</h3><p>老農津貼、長照補助</p></div>
+      </div>
+      <div class="cat-card" onclick="openListModal('lowincome')">
+        <div class="c-icon">🏠</div>
+        <div class="c-text"><h3>中低收入戶</h3><p>生活補助、就學補助</p></div>
+      </div>
+      <div class="cat-card" onclick="openListModal('disability')">
+        <div class="c-icon">♿</div>
+        <div class="c-text"><h3>身心障礙</h3><p>生活補助、輔具費用</p></div>
+      </div>
+      <div class="cat-card" onclick="openListModal('indigenous')">
+        <div class="c-icon">🌿</div>
+        <div class="c-text"><h3>原住民及新住民</h3><p>生活輔助、適應補助</p></div>
+      </div>
+    </div>
+    <div class="cat-grid-last">
+      <div class="cat-card" onclick="openListModal('singleparent')">
+        <div class="c-icon">👩‍👦</div>
+        <div class="c-text"><h3>單親家庭</h3><p>特殊境遇、子女津貼</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Featured ── -->
+<div class="section" id="featured">
+  <div class="section-title">精選補助項目</div>
+  <div id="featured-list"></div>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  補助小幫手 · 資料來源：衛生福利部、各地方政府<br>
+  如有疑問請洽各地公所社會課或撥打 <a href="#">1957 社福專線</a>
+</footer>
+
+<!-- ══════════ Modal：類別列表 ══════════ -->
+<div class="overlay" id="overlay-list" onclick="closeIfBg(event,'overlay-list')">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-list-title"></h2>
+      <button class="modal-close" onclick="closeModal('overlay-list')">✕</button>
+    </div>
+    <div id="modal-list-body"></div>
+  </div>
+</div>
+
+<!-- ══════════ Modal：補助詳情 ══════════ -->
+<div class="overlay" id="overlay-detail" onclick="closeIfBg(event,'overlay-detail')">
+  <div class="modal">
+    <div class="detail-hero">
+      <div class="dh-tag" id="detail-cat-tag"></div>
+      <h2 id="detail-name"></h2>
+      <p id="detail-sub"></p>
+    </div>
     <div class="tab-bar">
       <button class="tab-btn active" onclick="switchTab('intro')">簡介</button>
       <button class="tab-btn" onclick="switchTab('process')">流程</button>
       <button class="tab-btn" onclick="switchTab('docs')">必備文件</button>
       <button class="tab-btn" onclick="switchTab('map')">地圖</button>
     </div>
-
-    <div id="tab-intro" class="tab-content active">
-      <div class="detail-card">
-        <h3>補助說明</h3>
-        <ul id="detail-intro-list"></ul>
-      </div>
-    </div>
-    <div id="tab-process" class="tab-content">
-      <div class="detail-card">
-        <h3>申請流程</h3>
-        <ol class="step-list" id="detail-process-list"></ol>
-      </div>
-    </div>
-    <div id="tab-docs" class="tab-content">
-      <div class="detail-card">
-        <h3>必備文件</h3>
-        <ul id="detail-docs-list"></ul>
-      </div>
-    </div>
-    <div id="tab-map" class="tab-content">
-      <div class="map-placeholder">
-        <div class="map-icon">📍</div>
-        <div>請前往附近公所或社會局辦理</div>
-      </div>
-      <div id="detail-offices"></div>
-    </div>
+    <div id="tab-intro" class="tab-content active"></div>
+    <div id="tab-process" class="tab-content"></div>
+    <div id="tab-docs" class="tab-content"></div>
+    <div id="tab-map" class="tab-content"></div>
   </div>
-
-</main>
+</div>
 
 <script>
-  // ── 資料庫 ──
-  const DATA = {
-    elder: {
-      title: "👴 長者補助",
-      items: [
-        {
-          name: "老農津貼",
-          subtitle: "農業勞動者月領補助",
-          intro: ["每月發放 7,550 元（一般）或 8,550 元（加強版）", "年滿 65 歲之農保被保險人", "未領取其他政府月退休金", "須於農會或公所加入農保滿六個月"],
-          process: ["備妥相關文件", "至戶籍所在地公所社會課提出申請", "由公所審核資格", "通過後次月起發放津貼"],
-          docs: ["身分證正本及影本", "農保加保資料", "存款帳戶封面影本", "印章"],
-          offices: [{ name: "台北市信義區公所", addr: "台北市信義區松仁路 99 號" }, { name: "台北市社會局", addr: "台北市中正區北平東路 30-1 號" }]
-        },
-        {
-          name: "中低收入老人生活津貼",
-          subtitle: "中低收入老人每月補貼",
-          intro: ["年滿 65 歲、具中低收入資格", "一般中低：每月 3,000 元；較低者：每月 7,759 元", "不得同時領取低收入老人生活補助"],
-          process: ["向戶籍地公所提出申請", "公所調查家庭經濟狀況", "縣市政府審核核定", "核准後次月起發放"],
-          docs: ["申請書", "身分證及戶口名簿影本", "財稅資料同意書", "存款帳戶影本"],
-          offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }]
-        },
-        {
-          name: "長照居家服務",
-          subtitle: "失能長者居家照顧補助",
-          intro: ["依失能等級補助每月 10,020～36,180 元", "可用於居家服務、日間照顧、交通接送等", "政府補助 70～90%，個人自付 10～30%"],
-          process: ["撥打 1966 長照專線提出申請", "照管專員入戶評估失能等級", "擬定照顧計畫", "媒合服務提供單位", "開始使用服務"],
-          docs: ["身分證", "病歷或醫師診斷書（視情況）", "戶口名簿"],
-          offices: [{ name: "長照服務專線", addr: "☎ 撥打 1966" }]
-        }
-      ]
-    },
-    lowincome: {
-      title: "🏠 中低收入戶補助",
-      items: [
-        {
-          name: "低收入戶生活補助",
-          subtitle: "每月基本生活費用補貼",
-          intro: ["依家庭人口數及每人每月最低生活費計算", "補足差額至最低生活費標準（約 14,230 元/人）", "全家人口均計入資產及所得審查"],
-          process: ["向戶籍地公所提出申請", "公所進行家庭訪視及調查", "縣市政府審核", "通過後按月發放"],
-          docs: ["申請書", "全戶戶口名簿", "所有成員財稅及財產資料", "租賃契約（如有）", "存款帳戶影本"],
-          offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }]
-        },
-        {
-          name: "中低收入戶子女就學補助",
-          subtitle: "減輕教育費用負擔",
-          intro: ["國小至大學各階段均有補助", "高中職每學期最高補助 10,800 元", "大專院校每學期最高補助 25,800 元", "每學年申請一次"],
-          process: ["開學後向學校提出申請", "學校彙整資料送縣市政府", "審核通過後撥款至帳戶"],
-          docs: ["申請書", "中低收入戶證明", "在學證明", "學費收據", "存款帳戶影本"],
-          offices: [{ name: "就讀學校教務處或學務處", addr: "請洽就讀學校" }]
-        }
-      ]
-    },
-    disability: {
-      title: "♿ 身心障礙補助",
-      items: [
-        {
-          name: "身心障礙生活補助",
-          subtitle: "領有手冊者每月補助",
-          intro: ["依障礙等級及家庭收入核定", "輕度障礙：每月 3,500～4,700 元", "中重度障礙：每月 5,500～7,500 元", "須同時符合低收入或中低收入資格"],
-          process: ["備妥文件向戶籍地公所提出申請", "公所審核障礙等級及經濟狀況", "審核通過後次月起發放"],
-          docs: ["申請書", "身心障礙手冊或證明", "身分證及戶口名簿", "財稅資料同意書", "存款帳戶影本"],
-          offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }]
-        },
-        {
-          name: "輔具費用補助",
-          subtitle: "購買輔助器具補助",
-          intro: ["輪椅、助聽器、視障輔具等均可申請", "依項目補助 2,000～100,000 元不等", "每項每隔一定年限可再申請", "須先經評估再購買"],
-          process: ["向公所或醫院評估", "取得評估報告後購買輔具", "檢附發票向公所申請補助", "審核通過後撥款"],
-          docs: ["申請書", "身心障礙手冊或證明", "醫師或治療師評估報告", "輔具購買發票正本", "存款帳戶影本"],
-          offices: [{ name: "各縣市輔具中心", addr: "請洽各縣市社會局查詢" }]
-        }
-      ]
-    },
-    indigenous: {
-      title: "🌿 原住民及新住民補助",
-      items: [
-        {
-          name: "原住民族生活輔助",
-          subtitle: "原住民基本生活補助",
-          intro: ["具原住民族籍者可申請", "包含醫療、教育、急難救助等多項補助", "部分補助依低收入資格核定"],
-          process: ["備妥族籍及相關文件", "向戶籍地公所或原住民族委員會申請", "審核通過後核發補助"],
-          docs: ["原住民族籍身分證明", "戶口名簿", "視補助項目備齊相關文件"],
-          offices: [{ name: "原住民族委員會", addr: "☎ 0800-068-752" }]
-        },
-        {
-          name: "新住民生活適應輔導",
-          subtitle: "外籍配偶生活輔助補助",
-          intro: ["提供生活適應課程及翻譯服務", "急難救助金最高 3 萬元", "子女就學補助及托育補助"],
-          process: ["向戶籍地移民署服務站諮詢", "確認符合資格後提出申請", "審核通過核發補助或服務"],
-          docs: ["外僑居留證或定居證", "戶口名簿", "結婚證明", "視補助項目備齊相關文件"],
-          offices: [{ name: "內政部移民署各服務站", addr: "☎ 0800-024-111" }]
-        }
-      ]
-    },
-    singleparent: {
-      title: "👩‍👦 單親家庭補助",
-      items: [
-        {
-          name: "特殊境遇家庭扶助",
-          subtitle: "單親家庭緊急生活補助",
-          intro: ["緊急生活扶助：每人每月 4,955 元，最長 6 個月", "子女生活津貼：每名子女每月 3,228 元", "兒童托育津貼：每名子女每月最高 5,000 元", "需符合特殊境遇條件（離婚、喪偶、受暴等）"],
-          process: ["向戶籍地公所社會課提出申請", "備齊相關文件及說明特殊境遇狀況", "社工家訪及審核", "通過後核發補助"],
-          docs: ["申請書", "身分證及戶口名簿", "離婚判決書/死亡證明/保護令等", "子女出生證明", "存款帳戶影本"],
-          offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }, { name: "家庭暴力及性侵害防治專線", addr: "☎ 113" }]
-        },
-        {
-          name: "未成年子女生活津貼",
-          subtitle: "18 歲以下子女每月補貼",
-          intro: ["每名子女每月 3,228 元", "子女須未滿 18 歲（就學可延至 25 歲）", "申請人須為單親且符合低中低收入資格"],
-          process: ["向公所提出申請", "審核收入及單親資格", "通過後按月發放至子女成年"],
-          docs: ["申請書", "戶口名簿", "離婚或喪偶證明", "子女在學證明（如已成年就學）", "存款帳戶影本"],
-          offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }]
-        }
-      ]
-    }
-  };
-
-  // ── 狀態 ──
-  let currentCat = null;
-
-  // ── 畫面切換 ──
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-' + id).classList.add('active');
-    window.scrollTo(0, 0);
+// ══════════ 資料庫 ══════════
+const DATA = {
+  elder: {
+    title: "👴 長者", tag: "長者",
+    items: [
+      {
+        name: "老農津貼", sub: "每月 7,550～8,550 元",
+        intro: ["每月發放 7,550 元（一般）或 8,550 元（加強版）","年滿 65 歲之農保被保險人","未領取其他政府月退休金","須於農會或公所加入農保滿六個月"],
+        process: ["備妥相關文件","至戶籍所在地公所社會課提出申請","由公所審核資格","通過後次月起發放津貼"],
+        docs: ["身分證正本及影本","農保加保資料","存款帳戶封面影本","印章"],
+        offices: [{ name: "各地區公所社會課", addr: "請依戶籍地查詢" },{ name: "農委會農業保險基金", addr: "☎ 0800-089-995" }]
+      },
+      {
+        name: "中低收入老人生活津貼", sub: "每月 3,000～7,759 元",
+        intro: ["年滿 65 歲、具中低收入資格","一般中低：每月 3,000 元；較低者：每月 7,759 元","不得同時領取低收入老人生活補助"],
+        process: ["向戶籍地公所提出申請","公所調查家庭經濟狀況","縣市政府審核核定","核准後次月起發放"],
+        docs: ["申請書","身分證及戶口名簿影本","財稅資料同意書","存款帳戶影本"],
+        offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }]
+      },
+      {
+        name: "長照居家服務", sub: "每月補助 10,020～36,180 元",
+        intro: ["依失能等級補助每月 10,020～36,180 元","可用於居家服務、日間照顧、交通接送等","政府補助 70～90%，個人自付 10～30%"],
+        process: ["撥打 1966 長照專線提出申請","照管專員入戶評估失能等級","擬定照顧計畫","媒合服務提供單位","開始使用服務"],
+        docs: ["身分證","病歷或醫師診斷書（視情況）","戶口名簿"],
+        offices: [{ name: "長照服務專線", addr: "☎ 撥打 1966" }]
+      }
+    ]
+  },
+  lowincome: {
+    title: "🏠 中低收入戶", tag: "中低收入",
+    items: [
+      {
+        name: "低收入戶生活補助", sub: "補足至每人每月最低生活費",
+        intro: ["依家庭人口數及每人最低生活費計算（約 14,230 元/人）","補足差額至最低生活費標準","全家人口均計入資產及所得審查"],
+        process: ["向戶籍地公所提出申請","公所進行家庭訪視及調查","縣市政府審核","通過後按月發放"],
+        docs: ["申請書","全戶戶口名簿","所有成員財稅及財產資料","租賃契約（如有）","存款帳戶影本"],
+        offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }]
+      },
+      {
+        name: "中低收入戶子女就學補助", sub: "高中至大學每學期最高 25,800 元",
+        intro: ["國小至大學各階段均有補助","高中職每學期最高補助 10,800 元","大專院校每學期最高補助 25,800 元","每學年申請一次"],
+        process: ["開學後向學校提出申請","學校彙整資料送縣市政府","審核通過後撥款至帳戶"],
+        docs: ["申請書","中低收入戶證明","在學證明","學費收據","存款帳戶影本"],
+        offices: [{ name: "就讀學校教務處或學務處", addr: "請洽就讀學校" }]
+      }
+    ]
+  },
+  disability: {
+    title: "♿ 身心障礙", tag: "身心障礙",
+    items: [
+      {
+        name: "身心障礙生活補助", sub: "每月 3,500～7,500 元",
+        intro: ["依障礙等級及家庭收入核定","輕度障礙：每月 3,500～4,700 元","中重度障礙：每月 5,500～7,500 元","須同時符合低收入或中低收入資格"],
+        process: ["備妥文件向戶籍地公所提出申請","公所審核障礙等級及經濟狀況","審核通過後次月起發放"],
+        docs: ["申請書","身心障礙手冊或證明","身分證及戶口名簿","財稅資料同意書","存款帳戶影本"],
+        offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }]
+      },
+      {
+        name: "輔具費用補助", sub: "每項補助 2,000～100,000 元",
+        intro: ["輪椅、助聽器、視障輔具等均可申請","依項目補助 2,000～100,000 元不等","每項每隔一定年限可再申請","須先經評估再購買"],
+        process: ["向公所或醫院申請評估","取得評估報告後購買輔具","檢附發票向公所申請補助","審核通過後撥款"],
+        docs: ["申請書","身心障礙手冊或證明","醫師或治療師評估報告","輔具購買發票正本","存款帳戶影本"],
+        offices: [{ name: "各縣市輔具中心", addr: "請洽各縣市社會局查詢" }]
+      }
+    ]
+  },
+  indigenous: {
+    title: "🌿 原住民及新住民", tag: "原/新住民",
+    items: [
+      {
+        name: "原住民族生活輔助", sub: "醫療、教育、急難救助等多項補助",
+        intro: ["具原住民族籍者可申請","包含醫療、教育、急難救助等多項補助","部分補助依低收入資格核定"],
+        process: ["備妥族籍及相關文件","向戶籍地公所或原住民族委員會申請","審核通過後核發補助"],
+        docs: ["原住民族籍身分證明","戶口名簿","視補助項目備齊相關文件"],
+        offices: [{ name: "原住民族委員會", addr: "☎ 0800-068-752" }]
+      },
+      {
+        name: "新住民生活適應輔導", sub: "急難救助最高 3 萬元",
+        intro: ["提供生活適應課程及翻譯服務","急難救助金最高 3 萬元","子女就學補助及托育補助"],
+        process: ["向戶籍地移民署服務站諮詢","確認符合資格後提出申請","審核通過核發補助或服務"],
+        docs: ["外僑居留證或定居證","戶口名簿","結婚證明","視補助項目備齊相關文件"],
+        offices: [{ name: "內政部移民署各服務站", addr: "☎ 0800-024-111" }]
+      }
+    ]
+  },
+  singleparent: {
+    title: "👩‍👦 單親家庭", tag: "單親家庭",
+    items: [
+      {
+        name: "特殊境遇家庭扶助", sub: "每月最高 4,955 元，最長 6 個月",
+        intro: ["緊急生活扶助：每人每月 4,955 元，最長 6 個月","子女生活津貼：每名子女每月 3,228 元","兒童托育津貼：每名子女每月最高 5,000 元","需符合特殊境遇條件（離婚、喪偶、受暴等）"],
+        process: ["向戶籍地公所社會課提出申請","備齊相關文件及說明特殊境遇狀況","社工家訪及審核","通過後核發補助"],
+        docs: ["申請書","身分證及戶口名簿","離婚判決書/死亡證明/保護令等","子女出生證明","存款帳戶影本"],
+        offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" },{ name: "家庭暴力及性侵害防治專線", addr: "☎ 113" }]
+      },
+      {
+        name: "未成年子女生活津貼", sub: "每名子女每月 3,228 元",
+        intro: ["每名子女每月 3,228 元","子女須未滿 18 歲（就學可延至 25 歲）","申請人須為單親且符合低中低收入資格"],
+        process: ["向公所提出申請","審核收入及單親資格","通過後按月發放至子女成年"],
+        docs: ["申請書","戶口名簿","離婚或喪偶證明","子女在學證明（如已成年就學）","存款帳戶影本"],
+        offices: [{ name: "各區公所社會課", addr: "請依戶籍地查詢" }]
+      }
+    ]
   }
+};
 
-  function goBack(to) { showScreen(to); }
-
-  // ── 顯示補助列表 ──
-  function showList(cat) {
-    currentCat = cat;
+// ══════════ 精選清單 ══════════
+const FEATURED = [
+  { cat:'elder',      idx:0 },
+  { cat:'lowincome',  idx:0 },
+  { cat:'disability', idx:1 },
+  { cat:'singleparent', idx:0 },
+];
+(function renderFeatured() {
+  const el = document.getElementById('featured-list');
+  FEATURED.forEach(({cat, idx}) => {
     const catData = DATA[cat];
-    document.getElementById('list-title').textContent = catData.title;
-    const container = document.getElementById('list-items');
-    container.innerHTML = '';
+    const item = catData.items[idx];
+    const div = document.createElement('div');
+    div.className = 'subsidy-row';
+    div.innerHTML = `
+      <div class="sr-left">
+        <span class="sr-tag">${catData.tag}</span>
+        <div>
+          <div class="sr-name">${item.name}</div>
+          <div class="sr-sub">${item.sub}</div>
+        </div>
+      </div>
+      <span class="sr-arrow">›</span>`;
+    div.onclick = () => { currentCat = cat; openDetailModal(idx); };
+    el.appendChild(div);
+  });
+})();
+
+// ══════════ 搜尋 ══════════
+function handleSearch(val) {
+  val = val.trim().toLowerCase();
+  if (!val) return;
+  let found = null, foundCat = null;
+  Object.entries(DATA).forEach(([cat, catData]) => {
     catData.items.forEach((item, idx) => {
-      const btn = document.createElement('button');
-      btn.className = 'subsidy-item';
-      btn.innerHTML = `<span>${item.name}<br><small style="font-weight:400;color:#aaa;font-size:12px;">${item.subtitle}</small></span><span class="arrow">›</span>`;
-      btn.onclick = () => showDetail(idx);
-      container.appendChild(btn);
+      if (!found && (item.name.toLowerCase().includes(val) || item.sub.toLowerCase().includes(val))) {
+        found = idx; foundCat = cat;
+      }
     });
-    showScreen('list');
-  }
+  });
+  if (found !== null) { currentCat = foundCat; openDetailModal(found); }
+  else { alert('找不到相關補助，請嘗試其他關鍵字'); }
+}
 
-  // ── 顯示補助詳情 ──
-  function showDetail(idx) {
-    const item = DATA[currentCat].items[idx];
-    document.getElementById('detail-title').textContent = item.name;
-    document.getElementById('detail-subtitle').textContent = item.subtitle;
+// ══════════ Modal 控制 ══════════
+let currentCat = null;
 
-    // 填入各 tab 資料
-    fillList('detail-intro-list', item.intro, 'ul');
-    fillList('detail-process-list', item.process, 'ol');
-    fillList('detail-docs-list', item.docs, 'ul');
+function openListModal(cat) {
+  currentCat = cat;
+  const catData = DATA[cat];
+  document.getElementById('modal-list-title').textContent = catData.title;
+  const body = document.getElementById('modal-list-body');
+  body.innerHTML = '';
+  catData.items.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'modal-list-item';
+    div.innerHTML = `
+      <div class="ml-left">
+        <h3>${item.name}</h3>
+        <p>${item.sub}</p>
+      </div>
+      <span class="ml-arrow">›</span>`;
+    div.onclick = () => { closeModal('overlay-list'); openDetailModal(idx); };
+    body.appendChild(div);
+  });
+  document.getElementById('overlay-list').classList.add('open');
+}
 
-    const officesEl = document.getElementById('detail-offices');
-    officesEl.innerHTML = item.offices.map(o =>
-      `<div class="office-item"><strong>${o.name}</strong>${o.addr}</div>`
-    ).join('');
+function openDetailModal(idx) {
+  const catData = DATA[currentCat];
+  const item = catData.items[idx];
+  document.getElementById('detail-cat-tag').textContent = catData.tag;
+  document.getElementById('detail-name').textContent = item.name;
+  document.getElementById('detail-sub').textContent = item.sub;
 
-    // 重設 tab
-    switchTab('intro');
-    showScreen('detail');
-  }
+  // 簡介
+  document.getElementById('tab-intro').innerHTML = `
+    <div class="info-block"><h3>補助說明</h3>
+    <ul>${item.intro.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
 
-  function fillList(elId, arr, type) {
-    const el = document.getElementById(elId);
-    el.innerHTML = arr.map(t => `<li>${t}</li>`).join('');
-  }
+  // 流程
+  document.getElementById('tab-process').innerHTML = `
+    <div class="info-block"><h3>申請步驟</h3>
+    <ol class="step-list">${item.process.map(t=>`<li>${t}</li>`).join('')}</ol></div>`;
 
-  // ── Tab 切換 ──
-  function switchTab(name) {
-    document.querySelectorAll('.tab-btn').forEach((b, i) => {
-      const tabs = ['intro', 'process', 'docs', 'map'];
-      b.classList.toggle('active', tabs[i] === name);
-    });
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('active');
-  }
+  // 文件
+  document.getElementById('tab-docs').innerHTML = `
+    <div class="info-block"><h3>需備文件</h3>
+    <div style="margin-top:4px">${item.docs.map(t=>`<span class="doc-chip">${t}</span>`).join('')}</div></div>`;
+
+  // 地圖
+  document.getElementById('tab-map').innerHTML = `
+    <div class="info-block"><h3>洽辦地點</h3>
+    ${item.offices.map(o=>`<div class="office-card"><strong>${o.name}</strong><span>${o.addr}</span></div>`).join('')}
+    </div>
+    <div style="background:var(--surface2);border:1.5px dashed var(--yellow);border-radius:12px;padding:24px;text-align:center;color:var(--muted);font-size:13px;">
+      📍 地圖功能即將上線
+    </div>`;
+
+  switchTab('intro');
+  document.getElementById('overlay-detail').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+function closeIfBg(e, id) {
+  if (e.target.id === id) closeModal(id);
+}
+
+function switchTab(name) {
+  const tabs = ['intro','process','docs','map'];
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', tabs[i]===name));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
 </script>
-
 </body>
 </html>
