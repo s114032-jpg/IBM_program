@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>申請補助小幫手</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: #f4f6fb;
+      color: #1f2328;
+      min-height: 100vh;
+      padding: 32px 16px 64px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: #1f2328;
+    }
+    header p {
+      margin-top: 8px;
+      font-size: .95rem;
+      color: #57606a;
+    }
+
+    /* ── Category buttons ── */
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      max-width: 780px;
+      margin: 0 auto 40px;
+    }
+
+    .cat-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px 28px;
+      border: 2px solid transparent;
+      border-radius: 999px; /* 連續曲率圓角 */
+      background: #ffffff;
+      cursor: pointer;
+      font-size: .92rem;
+      font-weight: 600;
+      color: #57606a;
+      transition: all .2s ease;
+      min-width: 120px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .cat-btn .icon {
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+    .cat-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    }
+    .cat-btn.active {
+      border-color: currentColor;
+      color: var(--accent);
+      background: var(--bg-light);
+    }
+
+    /* Per-category accent colours */
+    .cat-btn[data-cat="elderly"]        { --accent: #d97706; --bg-light: #fffbeb; }
+    .cat-btn[data-cat="lowincome"]      { --accent: #2563eb; --bg-light: #eff6ff; }
+    .cat-btn[data-cat="disability"]     { --accent: #7c3aed; --bg-light: #f5f3ff; }
+    .cat-btn[data-cat="indigenous"]     { --accent: #059669; --bg-light: #ecfdf5; }
+    .cat-btn[data-cat="singleparent"]   { --accent: #db2777; --bg-light: #fdf2f8; }
+
+    .cat-btn.active .icon,
+    .cat-btn.active .label { color: var(--accent); }
+
+    /* ── Panel ── */
+    .panel {
+      display: none;
+      max-width: 760px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    }
+    .panel.visible { display: block; }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .panel-header .icon { font-size: 2rem; }
+    .panel-header h2 { font-size: 1.25rem; font-weight: 700; }
+
+    /* Select row */
+    .select-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .select-row label {
+      font-size: .85rem;
+      font-weight: 600;
+      color: #57606a;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 160px;
+    }
+    .select-row select {
+      padding: 10px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 999px;
+      font-size: .92rem;
+      color: #1f2328;
+      background: #f7f8fa;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2357606a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .select-row select:focus { outline: none; border-color: #3b82d4; }
+
+    .btn-query {
+      align-self: flex-end;
+      padding: 10px 28px;
+      border: none;
+      border-radius: 999px;
+      background: #1f2328;
+      color: #fff;
+      font-size: .92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-query:hover { background: #3b82d4; }
+
+    /* ── Result card ── */
+    .result { display: none; }
+    .result.visible { display: block; }
+
+    .result-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1f2328;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid #e5e7eb;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+    .section h3 {
+      font-size: .92rem;
+      font-weight: 700;
+      color: #57606a;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section h3::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 14px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+    .section ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .section ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: .93rem;
+      line-height: 1.6;
+      color: #1f2328;
+    }
+    .section ul li::before {
+      content: '▸';
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: #3b82d4;
+    }
+
+    .section-intro p {
+      font-size: .93rem;
+      line-height: 1.7;
+      color: #1f2328;
+      background: #f7f8fa;
+      border-radius: 14px;
+      padding: 14px 18px;
+    }
+
+    /* Step list for 流程 */
+    .steps { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: .93rem;
+      line-height: 1.6;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #1f2328;
+      color: #fff;
+      font-size: .75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 40px 0 10px;
+      color: #57606a;
+      font-size: .92rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .cat-btn { padding: 16px 18px; min-width: 100px; }
+      .panel { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>申請補助小幫手</h1>
+  <p>選擇您的身分，查詢可申請的補助項目與辦理流程</p>
+</header>
+
+<!-- ── Category buttons ── -->
+<div class="categories">
+  <button class="cat-btn" data-cat="elderly"      onclick="selectCat(this)">
+    <span class="icon">👴</span><span class="label">長者</span>
+  </button>
+  <button class="cat-btn" data-cat="lowincome"    onclick="selectCat(this)">
+    <span class="icon">🏠</span><span class="label">中低收入</span>
+  </button>
+  <button class="cat-btn" data-cat="disability"   onclick="selectCat(this)">
+    <span class="icon">♿</span><span class="label">身心障礙</span>
+  </button>
+  <button class="cat-btn" data-cat="indigenous"   onclick="selectCat(this)">
+    <span class="icon">🌿</span><span class="label">原住民及新住民</span>
+  </button>
+  <button class="cat-btn" data-cat="singleparent" onclick="selectCat(this)">
+    <span class="icon">👨‍👧</span><span class="label">單親家庭</span>
+  </button>
+</div>
+
+<!-- ── Panels (one per category) ── -->
+<div id="panel-elderly" class="panel">
+  <div class="panel-header"><span class="icon">👴</span><h2>長者補助</h2></div>
+  <div class="select-row">
+    <label>補助項目
+      <select id="sel-elderly-type">
+        <option value="">— 請選擇 —</option>
+        <option value="living">中低收入老人生活津貼</option>
+        <option value="care">長期照顧服務補助</option>
+        <option value="medical">老人醫療費用補助</option>
+        <option value="transport">敬老卡／交通點數補助</option>
+        <option value="ltc20">長照 2.0 服務補助</option>
+        <option value="denture">老人假牙補助</option>
+        <option value="chongyang">重陽敬老禮金</option>
+      </select>
+    </label>
+    <button class="btn-query" onclick="showResult('elderly')">查詢</button>
+  </div>
+  <div id="result-elderly" class="result"></div>
+</div>
+
+<div id="panel-lowincome" class="panel">
+  <div class="panel-header"><span class="icon">🏠</span><h2>中低收入戶補助</h2></div>
+  <div class="select-row">
+    <label>補助項目
+      <select id="sel-lowincome-type">
+        <option value="">— 請選擇 —</option>
+        <option value="living">低收入戶生活扶助</option>
+        <option value="edu">就學生活補助</option>
+        <option value="medical">醫療補助</option>
+        <option value="rent">中央擴大租金補貼</option>
+        <option value="emergency">急難救助金／馬上關懷</option>
+      </select>
+    </label>
+    <button class="btn-query" onclick="showResult('lowincome')">查詢</button>
+  </div>
+  <div id="result-lowincome" class="result"></div>
+</div>
+
+<div id="panel-disability" class="panel">
+  <div class="panel-header"><span class="icon">♿</span><h2>身心障礙補助</h2></div>
+  <div class="select-row">
+    <label>補助項目
+      <select id="sel-disability-type">
+        <option value="">— 請選擇 —</option>
+        <option value="living">生活補助</option>
+        <option value="care">日間照顧及住宿費用補助</option>
+        <option value="assist">輔具費用補助</option>
+        <option value="home">無障礙住宅改善補助</option>
+        <option value="vehicle">專用車輛免稅及租屋補助</option>
+      </select>
+    </label>
+    <button class="btn-query" onclick="showResult('disability')">查詢</button>
+  </div>
+  <div id="result-disability" class="result"></div>
+</div>
+
+<div id="panel-indigenous" class="panel">
+  <div class="panel-header"><span class="icon">🌿</span><h2>原住民及新住民補助</h2></div>
+  <div class="select-row">
+    <label>補助項目
+      <select id="sel-indigenous-type">
+        <option value="">— 請選擇 —</option>
+        <option value="edu">原住民族獎助學金</option>
+        <option value="employ">就業促進補助</option>
+        <option value="newresident">新住民生活適應輔導</option>
+        <option value="newemergency">新住民急難救助與特境補助</option>
+        <option value="skill">新住民技能檢定獎勵金</option>
+        <option value="elderlyplus">原住民長者敬老福利加碼</option>
+      </select>
+    </label>
+    <button class="btn-query" onclick="showResult('indigenous')">查詢</button>
+  </div>
+  <div id="result-indigenous" class="result"></div>
+</div>
+
+<div id="panel-singleparent" class="panel">
+  <div class="panel-header"><span class="icon">👨‍👧</span><h2>單親家庭補助</h2></div>
+  <div class="select-row">
+    <label>補助項目
+      <select id="sel-singleparent-type">
+        <option value="">— 請選擇 —</option>
+        <option value="living">單親家庭生活補助</option>
+        <option value="childcare">兒童托育補助</option>
+        <option value="edu">子女就學補助</option>
+        <option value="childliving">特殊境遇家庭子女生活津貼</option>
+        <option value="emergency">特殊境遇家庭緊急生活扶助</option>
+        <option value="legal">法律訴訟與律師費補助</option>
+      </select>
+    </label>
+    <button class="btn-query" onclick="showResult('singleparent')">查詢</button>
+  </div>
+  <div id="result-singleparent" class="result"></div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   資料庫
+───────────────────────────────────────── */
+const DATA = {
+  elderly: {
+    living: {
+      title: "中低收入老人生活津貼",
+      intro: "針對65歲以上、未接受公費收容安置、符合中低收入資格之老人，每月發給生活津貼，維持基本生活所需。",
+      docs: ["國民身分證或戶口名簿", "近3個月存款餘額證明", "財稅資料查詢授權書", "診斷證明（如有重病）", "戶籍謄本（3個月內）"],
+      steps: ["備妥申請文件", "向戶籍所在地公所社會課提出申請", "社工進行訪視與資格審查", "審核通過後核定津貼金額", "每月匯入指定帳戶"]
+    },
+    care: {
+      title: "長期照顧服務補助",
+      intro: "提供65歲以上失能老人居家服務、日間照顧及機構安置補助，依失能等級核定補助額度，以支持在地老化。",
+      docs: ["失能評估表（由長照管理中心進行）", "國民身分證", "低收入或中低收入戶證明（如有）", "銀行帳號存摺封面影本"],
+      steps: ["撥打1966長照專線申請評估", "照管專員到府進行ADLFIM失能評估", "核定補助額度並安排照顧計畫", "由特約服務單位提供服務", "每季依實際使用量結算補助"]
+    },
+    medical: {
+      title: "老人醫療費用補助",
+      intro: "65歲以上符合中低收入資格之老人，就醫時可申請自付醫療費用補助，減輕就醫負擔。",
+      docs: ["醫療費用收據正本", "存摺封面影本", "中低收入戶證明", "診斷書或出院病歷摘要"],
+      steps: ["就醫並保留收據", "備妥相關文件", "向戶籍地公所或社會局申請", "審核身分資格與費用憑證", "核定後退費匯入帳戶"]
+    },
+    transport: {
+      title: "敬老卡／交通點數補助",
+      intro: "65歲以上長者可申請敬老卡（悠遊卡），享有搭乘大眾運輸（捷運、公車、台鐵）優惠，部分縣市另提供計程車乘車補助點數，以鼓勵長者出行及社會參與。",
+      docs: ["國民身分證正本", "一吋大頭照兩張", "健保卡（部分縣市需核對）", "申請表（向戶籍地公所或指定窗口取得）"],
+      steps: ["攜帶身分證及照片至戶籍地區公所或指定服務據點", "填寫敬老卡申請表", "現場核驗身分並製卡或核定點數", "約1~2週後領取敬老卡或點數儲值通知", "依各縣市規定至指定地點領取計程車補助點數（如有）"]
+    },
+    ltc20: {
+      title: "長照 2.0 服務補助",
+      intro: "長照2.0提供失能或失智之65歲以上長者居家服務、日間照顧、喘息服務等多元照顧選項，依失能等級核定補助額度，減輕家庭照顧壓力。",
+      docs: ["國民身分證", "失能評估結果（由長照管理中心安排）", "低（中低）收入戶證明（如有，可提高補助比例）", "銀行帳號存摺封面影本"],
+      steps: ["撥打1966長照專線或向長照管理中心提出申請", "照管專員到宅進行功能評估（ADL/IADL）", "核定服務項目及補助額度", "由特約服務單位（照管員/日照中心）提供服務", "每月依實際使用量結算，差額由個人自付"]
+    },
+    denture: {
+      title: "老人假牙補助",
+      intro: "65歲以上之低收入戶、中低收入戶老人，因缺牙影響咀嚼功能，可申請假牙（活動假牙）製作費用補助，每3年可申請一次。",
+      docs: ["國民身分證", "低（中低）收入戶證明", "牙科診斷書或治療計畫書（特約醫療院所開立）", "存摺封面影本"],
+      steps: ["至特約牙科診所檢查並確認需製作假牙", "取得診斷書後向戶籍地公所社會課或社會局申請", "審查資格並核定補助金額", "至特約牙科完成假牙製作", "核定後補助款項退費至帳戶"]
+    },
+    chongyang: {
+      title: "重陽敬老禮金",
+      intro: "每年農曆九月九日重陽節，各縣市政府對年滿65歲以上（部分縣市為70歲）之設籍長者發給重陽敬老禮金或禮品，表達社會對長者的敬重。",
+      docs: ["設籍當地戶口（通常免申請，由戶政自動核查）", "部分縣市需本人或家屬至公所領取或填具匯款帳號"],
+      steps: ["確認戶籍設在申請縣市", "留意各縣市公告發放方式（直接匯款或現場領取）", "依公告時間攜帶身分證至指定地點領取（或等待匯款）"]
+    }
+  },
+  lowincome: {
+    living: {
+      title: "低收入戶生活扶助",
+      intro: "針對經主管機關認定為低收入戶之家庭，按人口數每月發給生活扶助費，確保基本生活需求。",
+      docs: ["全戶戶籍謄本（3個月內）", "全戶財稅及財產資料授權書", "全戶金融帳戶存款餘額證明", "租賃契約或自有住宅證明", "在學子女學費收據（如有）"],
+      steps: ["向戶籍地鄉鎮市區公所提出申請", "填寫申請書及財產申報表", "社工進行家庭訪視", "縣市社會局審查核定", "每月定期匯入帳戶"]
+    },
+    edu: {
+      title: "就學生活補助",
+      intro: "低收入及中低收入戶家庭中，就讀高中職以上之學生，可申請就學生活補助，減輕就學費用負擔。",
+      docs: ["在學證明或學生證", "家庭低（中低）收入戶證明", "戶籍謄本", "存摺封面影本"],
+      steps: ["每學期開學後，向就讀學校申請", "學校彙整名冊送縣市教育局", "審核身分資格", "核定後由學校發放或匯款"]
+    },
+    medical: {
+      title: "醫療補助",
+      intro: "低收入戶及符合資格的中低收入戶成員，就醫費用超出健保給付部分，可向社政單位申請醫療補助。",
+      docs: ["醫療費用收據（含診斷書）", "低（中低）收入戶證明", "健保卡影本", "存摺封面影本"],
+      steps: ["就醫保留收據及診斷書", "向戶籍地公所社會課申請", "填寫補助申請書", "審查資格及費用憑證", "核定後匯款至帳戶"]
+    },
+    rent: {
+      title: "中央擴大租金補貼",
+      intro: "行政院推動300億元擴大租金補貼方案，中低收入戶可享1.2~1.4倍加碼補貼，協助減輕租屋費用負擔，適用於租用民間房屋且無自有住宅之家庭。",
+      docs: ["租賃契約書（含房東身分證影本）", "房屋租金支出憑證（匯款收據或收據）", "戶籍謄本", "低（中低）收入戶證明", "全戶無自有住宅切結書", "存摺封面影本"],
+      steps: ["至內政部租金補貼資訊網（housingsubsidy.tw）線上申請或至戶籍地公所辦理", "填寫申請書及上傳佐證文件", "縣市政府審查資格及租約", "核定補助金額（依縣市、家庭規模、所得分級）", "每月或每季匯入帳戶"]
+    },
+    emergency: {
+      title: "急難救助金／馬上關懷",
+      intro: "遭遇非預期事故（如失業、重病、意外、天災）導致生活急困的家庭，可申請一次性急難救助金（馬上關懷方案），迅速紓解燃眉之急。",
+      docs: ["申請人身分證", "急難事由相關證明（如醫療收據、失業通知、災損證明等）", "戶籍謄本", "存摺封面影本"],
+      steps: ["發生急難事由後儘速聯繫戶籍地公所社會課或社工", "填寫急難救助申請書並附上佐證文件", "社工緊急訪視評估", "核定後48小時內發放救助金（馬上關懷案件）", "後續視需要轉介其他資源"]
+    }
+  },
+  disability: {
+    living: {
+      title: "身心障礙者生活補助",
+      intro: "領有身心障礙證明且符合所得限制之障礙者，每月核發生活補助費，依障礙等級及家庭所得分級給付。",
+      docs: ["身心障礙證明正本", "戶籍謄本（3個月內）", "全戶稅務及財產申報同意書", "銀行帳號存摺封面影本"],
+      steps: ["向戶籍地公所或社會局提出申請", "填寫申請書並附上必要文件", "資格審查（所得/財產調查）", "核定後按月撥付"]
+    },
+    care: {
+      title: "日間照顧及住宿費用補助",
+      intro: "身心障礙者入住機構或使用日間照顧服務時，依障礙類別、等級及所得，補助部分費用，減輕家庭負擔。",
+      docs: ["身心障礙證明", "機構收費收據或服務合約", "戶籍謄本", "低（中低）收入戶證明（如有）", "存摺封面影本"],
+      steps: ["選定合法立案照顧機構", "入住後取得費用收據", "向戶籍地社會局申請補助", "審查資格及費用單據", "核定後退費或定期補助"]
+    },
+    assist: {
+      title: "輔具費用補助",
+      intro: "身心障礙者需使用輔助器具（如輪椅、助聽器、義肢等），可申請輔具費用補助，依類別及所得核定補助金額。",
+      docs: ["身心障礙證明", "醫師開具之輔具評估或診斷書", "輔具購買收據（含廠商統一編號）", "存摺封面影本"],
+      steps: ["由醫師或治療師評估需求", "向縣市輔具資源中心提出申請", "審查資格與評估報告", "核定補助金額", "購買後憑收據申請退費"]
+    },
+    home: {
+      title: "無障礙住宅改善補助",
+      intro: "領有身心障礙證明者，為改善居家無障礙環境（如安裝浴室扶手、坡道改裝、門寬加大等），可申請住宅修繕補助，低收入戶可獲較高補助比例。",
+      docs: ["身心障礙證明", "房屋所有權狀或租賃契約", "改善工程估價單（合法廠商開具）", "低（中低）收入戶證明（如有）", "存摺封面影本"],
+      steps: ["向戶籍地縣市政府社會局或建管單位提出申請", "填寫申請書並附上估價單與相關證明", "審查資格並派員勘查現場", "核定補助金額", "完工後憑收據核銷，補助款匯入帳戶"]
+    },
+    vehicle: {
+      title: "專用車輛免稅及租屋補助",
+      intro: "身心障礙者本人或同戶家屬所有之專用車輛，可申請免徵汽機車牌照稅；另符合資格之障礙者租屋時，可申請租屋補助，減輕生活費用負擔。",
+      docs: ["身心障礙證明", "車輛行車執照（免稅類）", "租賃契約及租金收據（租屋補助類）", "戶籍謄本", "存摺封面影本"],
+      steps: ["免稅申請：向車輛所在地監理站或稅捐處申請牌照稅減免", "租屋補助申請：向戶籍地公所或社會局提出", "填寫申請書並附上證明文件", "審查核定後減免稅額或補助款項撥入帳戶"]
+    }
+  },
+  indigenous: {
+    edu: {
+      title: "原住民族獎助學金",
+      intro: "具原住民族身分之在學學生，依就讀階段（高中、大專、研究所）及學業成績，核發不同額度之獎助學金。",
+      docs: ["原住民族身分證明（戶籍謄本）", "在學證明或學生證", "成績單（上學期）", "存摺封面影本"],
+      steps: ["每學期向就讀學校原民會窗口申請", "填寫申請書並繳交文件", "原住民族委員會審核", "核定後匯入帳戶"]
+    },
+    employ: {
+      title: "就業促進補助",
+      intro: "提供原住民族失業者職業訓練、就業媒合及創業貸款補助，協助提升就業技能與機會。",
+      docs: ["原住民族身分證明", "失業（求職）登記證明", "訓練計畫報名表（職訓類）", "創業計畫書（創業類）"],
+      steps: ["向公立就業服務站辦理求職登記", "由就業服務員評估需求", "媒合職缺或推介訓練課程", "完成訓練後核發補助或媒合就業"]
+    },
+    newresident: {
+      title: "新住民生活適應輔導",
+      intro: "提供來自不同國籍之新住民（外籍配偶）生活適應課程、語言學習、法律諮詢及緊急生活補助，協助融入在地生活。",
+      docs: ["居留證或定居證", "結婚證明（戶籍謄本）", "最近一張大頭照"],
+      steps: ["向戶籍地移民署服務站或社會局報到", "參加生活適應輔導課程", "申請所需補助項目（語言班/緊急補助）", "個案管理員持續追蹤協助"]
+    },
+    newemergency: {
+      title: "新住民急難救助與特殊境遇補助",
+      intro: "新住民（外籍或大陸配偶）遭遇家暴、失業、重病等急難狀況，可向移民署或社會局申請急難救助，另符合特殊境遇家庭條件者可申請各項生活、托育及就學補助。",
+      docs: ["居留證或定居證", "急難事由證明（如驗傷單、診斷書、庇護令等）", "戶籍謄本或結婚證明", "存摺封面影本"],
+      steps: ["聯繫移民署服務站、社會局或1955專線求助", "填寫急難救助申請表並附上佐證", "社工訪視評估", "核定後發放救助金或轉介庇護資源", "持續個案管理並連結長期服務"]
+    },
+    skill: {
+      title: "新住民及其子女技能檢定獎勵金",
+      intro: "新住民及其在台灣出生之子女，取得勞動部技術士證照（技能檢定）後，可向新住民發展基金申請獎勵金，鼓勵培力就業技能。",
+      docs: ["居留證或定居證（新住民本人）或國民身分證（子女）", "技術士證書正本及影本", "申請表（向移民署或新住民培力點索取）", "存摺封面影本"],
+      steps: ["取得技術士證照後備妥文件", "向移民署各縣市服務站或新住民培力點提出申請", "填寫申請書並繳驗證書", "審查資格", "核定後匯入帳戶"]
+    },
+    elderlyplus: {
+      title: "原住民 55 歲以上長者敬老福利加碼",
+      intro: "具原住民族身分、年滿55歲以上之長者，可領取原住民族敬老福利生活津貼，比一般長者提早10年開始受益，由原住民族委員會每月發放。",
+      docs: ["原住民族身分證明（戶籍謄本）", "國民身分證", "存摺封面影本", "申請書（向戶籍地公所或原民會窗口索取）"],
+      steps: ["備妥文件至戶籍地鄉鎮市區公所原住民行政單位申請", "填寫申請書及存摺帳號", "公所核轉原住民族委員會審核", "核定後按月匯入帳戶"]
+    }
+  },
+  singleparent: {
+    living: {
+      title: "單親家庭生活補助",
+      intro: "因離婚、喪偶、未婚等原因獨自撫育未成年子女之單親家庭，符合所得限制者，每月核發生活補助費。",
+      docs: ["戶籍謄本（含子女）", "離婚判決書、死亡證明或其他佐證（視情況）", "財稅資料授權書", "存摺封面影本"],
+      steps: ["向戶籍地公所社會課提出申請", "填寫申請書及家庭狀況說明", "社工訪視審查", "縣市社會局核定", "每月定期匯款"]
+    },
+    childcare: {
+      title: "兒童托育補助",
+      intro: "單親家庭中，未滿6歲之子女就讀合法立案托育機構或居家保母，依所得核定不同比例之托育費用補助。",
+      docs: ["子女出生證明或戶籍謄本", "托育機構或保母收費收據", "單親家庭證明（戶籍謄本）", "家庭所得相關文件", "存摺封面影本"],
+      steps: ["選定合法托育機構或居家保母", "向鄉鎮市區公所社會課申請", "填寫申請書並繳交文件", "核定補助額度", "每月結算後匯款補助"]
+    },
+    edu: {
+      title: "子女就學補助",
+      intro: "單親家庭子女就讀國小至大學階段，依家庭所得核發學費補助及課輔費補助，減輕就學經濟壓力。",
+      docs: ["戶籍謄本", "學費收費單據", "在學證明", "單親證明（戶籍謄本）", "存摺封面影本"],
+      steps: ["每學期開學後備妥文件", "向就讀學校或戶籍地公所申請", "填寫申請書並附上費用單據", "審核後核定補助金額", "匯入帳戶或由學校代為扣抵"]
+    },
+    childliving: {
+      title: "特殊境遇家庭子女生活津貼",
+      intro: "符合特殊境遇家庭資格（如離婚、喪偶、未婚生子、家暴受害等），其未滿18歲或仍在學之子女，可申請子女生活津貼，每名子女每月核發定額補助。",
+      docs: ["戶籍謄本（含子女）", "特殊境遇證明文件（離婚判決書、死亡證明、保護令等）", "子女在學證明（若已滿18歲仍在學）", "家庭所得申報資料", "存摺封面影本"],
+      steps: ["向戶籍地縣市政府社會局或公所提出申請", "填寫申請書並附上佐證文件", "社工審查家庭狀況與資格", "縣市社會局核定津貼金額", "每月定期匯款至指定帳戶"]
+    },
+    emergency: {
+      title: "特殊境遇家庭緊急生活扶助",
+      intro: "特殊境遇家庭（單親、家暴、離婚等）遭遇生活急困時，可申請一次性緊急生活扶助，協助渡過短期危機，補助期間最長6個月。",
+      docs: ["戶籍謄本", "特殊境遇證明（離婚判決書、保護令、死亡證明等）", "急困事由說明書", "財稅資料授權書", "存摺封面影本"],
+      steps: ["向戶籍地縣市社會局或公所申請", "填寫申請書並附上急困事由相關文件", "社工緊急訪視評估", "核定後發放扶助款", "期滿後視情況轉介長期資源"]
+    },
+    legal: {
+      title: "法律訴訟與律師費補助",
+      intro: "特殊境遇單親家庭（如爭取子女監護權、追討扶養費、家暴離婚訴訟等），可申請法律訴訟費用及律師費補助，保障弱勢家庭的訴訟權益。",
+      docs: ["戶籍謄本", "特殊境遇證明（保護令、受理案件證明等）", "訴訟相關文件（起訴書、法院通知等）", "律師費收據（事後核銷）或委任律師契約", "存摺封面影本"],
+      steps: ["向縣市法律扶助基金會或社會局提出申請", "填寫申請書並說明案由", "審查資格（所得與境遇條件）", "核定後由基金會指派律師或補助律師費用", "訴訟結束後憑收據辦理費用核銷"]
+    }
+  }
+};
+
+/* ─────────────────────────────────────────
+   互動邏輯
+───────────────────────────────────────── */
+let currentCat = null;
+
+function selectCat(btn) {
+  // 移除所有 active
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
+  document.querySelectorAll('.result').forEach(r => { r.classList.remove('visible'); r.innerHTML = ''; });
+
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+
+  const panel = document.getElementById('panel-' + currentCat);
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showResult(cat) {
+  const typeEl = document.getElementById('sel-' + cat + '-type');
+  const type = typeEl.value;
+  const resultEl = document.getElementById('result-' + cat);
+
+  if (!type) {
+    resultEl.innerHTML = '<div class="empty">請先選擇補助項目後再查詢。</div>';
+    resultEl.classList.add('visible');
+    return;
+  }
+
+  const d = DATA[cat][type];
+  if (!d) return;
+
+  const docsHtml = d.docs.map(x => `<li>${x}</li>`).join('');
+  const stepsHtml = d.steps.map((s, i) =>
+    `<li><span class="step-num">${i+1}</span><span>${s}</span></li>`
+  ).join('');
+
+  resultEl.innerHTML = `
+    <div class="result-title">📋 ${d.title}</div>
+    <div class="section section-intro">
+      <h3>簡介</h3>
+      <p>${d.intro}</p>
+    </div>
+    <div class="section">
+      <h3>必備文件</h3>
+      <ul>${docsHtml}</ul>
+    </div>
+    <div class="section">
+      <h3>申辦流程</h3>
+      <ol class="steps">${stepsHtml}</ol>
+    </div>
+  `;
+  resultEl.classList.add('visible');
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+
+</body>
+</html>
