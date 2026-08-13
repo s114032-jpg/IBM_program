@@ -336,6 +336,56 @@
     }
     footer a { color: var(--yellow-dark); text-decoration: none; }
 
+    /* ══ MAP ══ */
+    #map-container {
+      width: 100%; height: 320px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1.5px solid var(--border2);
+      margin-bottom: 12px;
+      background: var(--yellow-soft);
+    }
+    .map-locate-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%;
+      padding: 11px 0;
+      background: var(--yellow);
+      border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; color: var(--text);
+      cursor: pointer; margin-bottom: 14px;
+      transition: background 0.15s;
+    }
+    .map-locate-btn:hover { background: var(--yellow-mid); }
+    .map-locate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .map-nearest-label {
+      font-size: 12px; font-weight: 700; color: var(--muted);
+      letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .map-place-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--surface2); border: 1.5px solid var(--border2);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+      cursor: pointer; transition: border-color 0.15s;
+    }
+    .map-place-card:hover { border-color: var(--yellow); }
+    .map-place-card .mpc-icon {
+      font-size: 20px; width: 36px; height: 36px;
+      background: var(--yellow-soft); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .map-place-card .mpc-name  { font-size: 14px; font-weight: 700; color: var(--text); }
+    .map-place-card .mpc-addr  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .map-place-card .mpc-dist  {
+      font-size: 11px; font-weight: 700; color: var(--yellow-dark);
+      background: var(--yellow-soft); border-radius: 6px;
+      padding: 1px 7px; margin-top: 4px; display: inline-block;
+    }
+    .map-status {
+      font-size: 13px; color: var(--muted);
+      text-align: center; padding: 12px 0;
+    }
+
     /* ══ RWD ══ */
     @media (max-width: 540px) {
       .hero h1 { font-size: 26px; }
@@ -344,6 +394,7 @@
       .stats { gap: 20px; }
     }
   </style>
+  <!-- Google Maps API（使用免費 iframe Embed，不需 API Key） -->
 </head>
 <body>
 
@@ -709,11 +760,23 @@ function openDetailModal(idx) {
     <div class="info-block"><h3>需備文件</h3>
     <div style="margin-top:6px">${item.docs.map(t=>`<span class="doc-chip">${t}</span>`).join('')}</div></div>`;
 
+  // 地圖 tab：動態組建
   document.getElementById('tab-map').innerHTML = `
-    <div class="info-block"><h3>洽辦地點</h3>
-    ${item.offices.map(o=>`<div class="office-card"><strong>${o.name}</strong><span>${o.addr}</span></div>`).join('')}</div>
-    <div style="background:var(--yellow-soft);border:1.5px dashed var(--border2);border-radius:12px;padding:24px;text-align:center;color:var(--muted);font-size:13px;margin-top:4px;">
-      📍 互動地圖功能即將上線</div>`;
+    <button class="map-locate-btn" id="btn-locate" onclick="locateUser()">
+      📍 偵測我的位置，找最近辦理地點
+    </button>
+    <div id="map-status" class="map-status" style="display:none"></div>
+    <div id="map-container" style="display:none">
+      <iframe id="map-iframe" width="100%" height="320" style="border:0;display:block"
+        allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" src=""></iframe>
+    </div>
+    <div id="map-nearest"></div>
+    <div class="info-block" style="margin-top:8px"><h3>洽辦地點</h3>
+    ${item.offices.map(o=>`
+      <div class="office-card" style="cursor:pointer" onclick="searchOnMap('${o.name.replace(/'/g,"\\'")}')">
+        <strong>${o.name}</strong><span>${o.addr}</span>
+        <div style="font-size:11px;color:var(--yellow-dark);margin-top:4px;">點選在地圖上搜尋 →</div>
+      </div>`).join('')}</div>`;
 
   switchTab('intro');
   document.getElementById('overlay-detail').classList.add('open');
@@ -721,6 +784,107 @@ function openDetailModal(idx) {
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function closeIfBg(e,id){ if(e.target.id===id) closeModal(id); }
+
+// ══ 地圖功能 ══
+let userLat = null, userLng = null;
+
+function locateUser() {
+  const btn = document.getElementById('btn-locate');
+  const status = document.getElementById('map-status');
+  if (!navigator.geolocation) {
+    showMapStatus('❌ 您的瀏覽器不支援定位功能');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '⏳ 定位中…';
+  showMapStatus('正在取得您的位置…');
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      btn.textContent = '✅ 已取得位置，點選地點可更新地圖';
+      btn.disabled = false;
+      showMapOnCoords(userLat, userLng, '我的位置');
+      showNearestHint(userLat, userLng);
+    },
+    err => {
+      btn.disabled = false;
+      btn.textContent = '📍 重新偵測位置';
+      const msgs = {1:'請允許瀏覽器存取位置', 2:'無法取得位置，請檢查網路', 3:'定位逾時，請再試一次'};
+      showMapStatus('❌ ' + (msgs[err.code] || '定位失敗'));
+    },
+    { timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+function showMapOnCoords(lat, lng, label) {
+  const iframe = document.getElementById('map-iframe');
+  const container = document.getElementById('map-container');
+  const q = encodeURIComponent(label || `${lat},${lng}`);
+  iframe.src = `https://maps.google.com/maps?q=${q}&ll=${lat},${lng}&z=15&output=embed&hl=zh-TW`;
+  container.style.display = 'block';
+  document.getElementById('map-status').style.display = 'none';
+}
+
+function searchOnMap(placeName) {
+  const iframe = document.getElementById('map-iframe');
+  const container = document.getElementById('map-container');
+  let query = placeName;
+  if (userLat && userLng) {
+    query = encodeURIComponent(placeName);
+    iframe.src = `https://maps.google.com/maps?q=${query}&near=${userLat},${userLng}&z=14&output=embed&hl=zh-TW`;
+  } else {
+    query = encodeURIComponent(placeName + ' 台灣');
+    iframe.src = `https://maps.google.com/maps?q=${query}&z=13&output=embed&hl=zh-TW`;
+  }
+  container.style.display = 'block';
+  container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function showMapStatus(msg) {
+  const el = document.getElementById('map-status');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function showNearestHint(lat, lng) {
+  // 計算與台灣主要社會局/公所的直線距離（代表性座標）
+  const OFFICES = [
+    { name: '台北市社會局', addr: '台北市中正區北平東路 30-1 號', lat: 25.0456, lng: 121.5203 },
+    { name: '新北市社會局', addr: '新北市板橋區中山路一段 161 號', lat: 25.0116, lng: 121.4639 },
+    { name: '桃園市社會局', addr: '桃園市桃園區縣府路 1 號', lat: 24.9936, lng: 121.3009 },
+    { name: '台中市社會局', addr: '台中市西屯區臺灣大道三段 99 號', lat: 24.1633, lng: 120.6478 },
+    { name: '台南市社會局', addr: '台南市安平區永華路二段 6 號', lat: 22.9897, lng: 120.1952 },
+    { name: '高雄市社會局', addr: '高雄市苓雅區四維三路 2 號', lat: 22.6273, lng: 120.3014 },
+    { name: '新竹市社會處', addr: '新竹市中正路 120 號', lat: 24.8036, lng: 120.9717 },
+    { name: '基隆市社會處', addr: '基隆市義一路 1 號', lat: 25.1285, lng: 121.7419 },
+    { name: '嘉義市社會處', addr: '嘉義市東區中山路 199 號', lat: 23.4801, lng: 120.4491 },
+  ];
+  const withDist = OFFICES.map(o => ({
+    ...o,
+    dist: Math.round(haversine(lat, lng, o.lat, o.lng) * 10) / 10
+  })).sort((a, b) => a.dist - b.dist).slice(0, 3);
+
+  const el = document.getElementById('map-nearest');
+  el.innerHTML = `<div class="map-nearest-label">📌 距離你最近的社會局</div>` +
+    withDist.map(o => `
+      <div class="map-place-card" onclick="searchOnMap('${o.name.replace(/'/g,"\\'")}')">
+        <div class="mpc-icon">🏛️</div>
+        <div>
+          <div class="mpc-name">${o.name}</div>
+          <div class="mpc-addr">${o.addr}</div>
+          <span class="mpc-dist">距離約 ${o.dist} 公里</span>
+        </div>
+      </div>`).join('');
+}
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
 function switchTab(name) {
   const tabs = ['intro','process','docs','map'];
